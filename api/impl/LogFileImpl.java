@@ -33,6 +33,12 @@ public class LogFileImpl implements LogFile {
             "\"Mozilla/5.0 (compatible; MSIE 5.0; Windows NT 5.0; Trident/3.0)\""
     };
 
+    private static String[] FixedLog = {
+            "191.251.168.5 - - [17/Aug/2022:18:23:49 -0500] \"GET /list HTTP/1.0\" 301 5090 \"http://www.sawyer.com/home.htm\" \"Mozilla/5.0 (Windows 98; Win 9x 4.90) AppleWebKit/5342 (KHTML, like Gecko) Chrome/14.0.858.0 Safari/5342\"",
+            "12.181.248.171 - - [17/Aug/2022:18:28:01 -0500] \"GET /posts/posts/explore HTTP/1.0\" 301 4940 \"http://mclaughlin-harrison.net/\" \"Mozilla/5.0 (compatible; MSIE 7.0; Windows 98; Win 9x 4.90; Trident/5.1)\"",
+            "235.76.218.27 - - [17/Aug/2022:18:29:02 -0500] \"POST /wp-admin HTTP/1.0\" 200 4951 \"http://johnson.net/\" \"Mozilla/5.0 (X11; Linux x86_64; rv:1.9.6.20) Gecko/2018-03-05 10:37:15 Firefox/3.8\""
+    };
+
     public static String GenerateIp(){
         StringBuilder stringBuilder = new StringBuilder();
         for(int i = 0; i < 4; i ++){
@@ -73,8 +79,12 @@ public class LogFileImpl implements LogFile {
             e.printStackTrace();
         }
         StringBuilder log =new StringBuilder();
+
         for(int i = 0; i < num; i++){
             log.append(GenerateIp()).append(GenerateDate()).append(GenerateRequest()).append(GenerateWeb()).append(GenerateSysBrowser()).append("\n");
+        }
+        for (String s : FixedLog) {
+            log.append(s);
         }
         content = log.toString();
         System.out.println(content);
