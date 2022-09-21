@@ -105,7 +105,6 @@ public class GrepTests {
                 "/",
                 "2022"
         };
-
         // get active servers' addresses and ports from properties file
         Properties properties = new Properties();
         BufferedReader bufferedReader = new BufferedReader(new FileReader(propertiesPath));
@@ -123,6 +122,7 @@ public class GrepTests {
         }
         while (executor.getActiveCount() != 0) {
         }
+        
         // fetch random log and save
         File logging = new File(LOG_ADDRESS);
         FileWriter fileWriter = new FileWriter(logging);
