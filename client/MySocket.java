@@ -4,17 +4,19 @@ import java.io.*;
 import java.net.Socket;
 
 public class MySocket extends Thread {
+    private String server_address;
     private String command;
     private String query;
     private Socket socket;
     private String responseMsg;
     private ServerState serverState;
     private Result result;
-    private static final int SLEEPING_INTERVAL = 10;
+    private static final int SLEEPING_INTERVAL = 5;
     public static final int MAX_SLEEPING_CYCLE = 10000;
 
 
     public MySocket(String server_address, int port, String command, String query, ServerState serverState, Result result) {
+        this.server_address = server_address;
         this.command = command;
         this.query = query;
         this.serverState = serverState;
@@ -66,6 +68,7 @@ public class MySocket extends Thread {
             }
             while (inputStream.available() > 0) {
                 responseMsg = inputStream.readUTF();
+                System.out.println(server_address+": "+responseMsg);
                 result.add(responseMsg);
             }
         } catch (IOException | InterruptedException e) {
