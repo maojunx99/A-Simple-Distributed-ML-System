@@ -54,7 +54,7 @@ public class Client {
         // create thread pool
         final ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 15, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         // initialize result container
-        Result result = new Result(command.equals(GREP_C) ? ResultType.Integer : ResultType.String);
+        Result result = new Result(ResultType.Integer);
 
         // get all server amount from properties file
         Properties properties = new Properties();
