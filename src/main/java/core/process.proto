@@ -1,0 +1,17 @@
+syntax = "proto3";
+package core;
+
+import "google/protobuf/timestamp.proto";
+option java_multiple_files = true;
+
+enum ProcessStatus{
+  ALIVE = 0;
+  LEAVE = 1;
+  CRASHED = 2;
+}
+message Process{
+  google.protobuf.Timestamp timestamp = 1;
+  string address = 2;
+  int64 port = 3;
+  ProcessStatus status = 4;
+}

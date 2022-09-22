@@ -1,4 +1,4 @@
-package main.service;
+package service;
 
 /**
  * To monitor neighbors, periodically check whether anyone of them crash

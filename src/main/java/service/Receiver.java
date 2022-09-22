@@ -1,4 +1,4 @@
-package main.service;
+package service;
 
 /**
  * multi-threads receive messages from other processes

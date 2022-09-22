@@ -1,6 +1,6 @@
-package main.utils;
+package utils;
 
-import main.core.Process;
+import core.Process;
 
 import java.util.List;
 
