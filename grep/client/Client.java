@@ -1,4 +1,4 @@
-package client;
+package grep.client;
 
 import java.io.*;
 import java.util.Properties;
@@ -8,40 +8,40 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class Client {
-    private static final String PROPERTIES_ADDRESS = "/home/yiteng3/cs425-mp/client/serverAddress.properties";
+    private static final String PROPERTIES_ADDRESS = "/home/yiteng3/cs425-mp/grep.client/serverAddress.properties";
     private static final String SERVER_AMOUNT = "amount";
     private static final String SERVER_STATE = "state";
     private static final String SERVER_ADDRESS = "server";
     private static final String PORT = "port";
     public static final String GREP_C = "grep -c";
 
-
-    public static void main(String[] args) {
-        Scanner s = new Scanner(System.in);
-        String line;
-        String command;
-        String query;
-        System.out.println("Please input a grep command:");
-        while (!(line = s.nextLine()).equals("EOF")) {
-            // parse line
-            String[] words = line.split(" ");
-            StringBuilder builder = new StringBuilder(words[0]);
-            if (words[1].equals("-c")) {
-                builder.append(" -c");
-            }
-            command = builder.toString();
-            query = line.replace(command + " ", "");
-            long start = System.currentTimeMillis();
-            try {
-                System.out.println(callServers(command, query));
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
-            }
-            long end = System.currentTimeMillis();
-            System.out.println("Total executing time: " + (end - start) + "ms");
-            System.out.println("Please input a grep command:");
-        }
-    }
+// don't need in mp2
+//    public static void main(String[] args) {
+//        Scanner s = new Scanner(System.in);
+//        String line;
+//        String command;
+//        String query;
+//        System.out.println("Please input a grep command:");
+//        while (!(line = s.nextLine()).equals("EOF")) {
+//            // parse line
+//            String[] words = line.split(" ");
+//            StringBuilder builder = new StringBuilder(words[0]);
+//            if (words[1].equals("-c")) {
+//                builder.append(" -c");
+//            }
+//            command = builder.toString();
+//            query = line.replace(command + " ", "");
+//            long start = System.currentTimeMillis();
+//            try {
+//                System.out.println(callServers(command, query));
+//            } catch (IOException | InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            long end = System.currentTimeMillis();
+//            System.out.println("Total executing time: " + (end - start) + "ms");
+//            System.out.println("Please input a grep command:");
+//        }
+//    }
 
     /**
      * @param command command
@@ -56,13 +56,13 @@ public class Client {
         // initialize result container
         Result result = new Result(ResultType.Integer);
 
-        // get all server amount from properties file
+        // get all grep.server amount from properties file
         Properties properties = new Properties();
         BufferedReader bufferedReader = new BufferedReader(new FileReader(PROPERTIES_ADDRESS));
         properties.load(bufferedReader);
         int amount = Integer.parseInt(properties.getProperty(SERVER_AMOUNT));
 
-        // iterate all server and fetch log from alive server, failed servers will be ignored
+        // iterate all grep.server and fetch log from alive grep.server, failed servers will be ignored
         for (int i = 0; i < amount; i++) {
             String state = properties.getProperty(SERVER_STATE + i);
             String server_address = properties.getProperty(SERVER_ADDRESS + i);

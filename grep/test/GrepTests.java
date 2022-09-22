@@ -1,5 +1,5 @@
-package test;
-import client.*;
+package grep.test;
+import grep.client.*;
 
 import java.io.*;
 import java.util.Arrays;
@@ -11,41 +11,41 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class GrepTests {
-    public static final String ACTIVE_SERVER_ADDRESS_PROPERTIES = "/home/yiteng3/cs425-mp/test/activeServerAddress.properties";
-    public static final String ABNORMAL_SERVER_ADDRESS_PROPERTIES = "/home/yiteng3/cs425-mp/test/partiallyFailedServerAddress.properties";
+    public static final String ACTIVE_SERVER_ADDRESS_PROPERTIES = "/home/yiteng3/cs425-mp/grep.test/activeServerAddress.properties";
+    public static final String ABNORMAL_SERVER_ADDRESS_PROPERTIES = "/home/yiteng3/cs425-mp/grep.test/partiallyFailedServerAddress.properties";
     public static final String LOG_ADDRESS = "logging.log";
     private static final String SERVER_AMOUNT = "amount";
     public static final String SERVER = "server";
     public static final String PORT = "port";
     public static final String TEST_COMMAND = "test";
     public static final String VM_HOME_ADDRESS = "/home/maojunx2/";
-    public static final String VM_LOG_ADDRESS = "mp1/test.log";
+    public static final String VM_LOG_ADDRESS = "mp1/grep.test.log";
     public static final String GREP = "grep";
     public static final String GREP_C = "grep -c";
 
     public static void main(String[] args) throws IOException, InterruptedException {
         Scanner s = new Scanner(System.in);
         String test;
-        System.out.println("Please input a test name! \n" +
+        System.out.println("Please input a grep.test name! \n" +
                 "You can choose from(\n" +
-                "[normal test]        ->   all sites are active\n" +
-                "[normal test -c]     ->   all sites are active and grep with -c\n" +
-                "[abnormal test]      ->   some of sites are failed\n" +
-                "[abnormal test -c]   ->   some of sites are failed and grep with -c\n" +
+                "[normal grep.test]        ->   all sites are active\n" +
+                "[normal grep.test -c]     ->   all sites are active and grep with -c\n" +
+                "[abnormal grep.test]      ->   some of sites are failed\n" +
+                "[abnormal grep.test -c]   ->   some of sites are failed and grep with -c\n" +
                 "[all tests]          ->   run all tests\n" +
                 "[EOF]                ->   end this process):");
         while (!Objects.equals(test = s.nextLine(), "EOF")) {
             switch (test) {
-                case "normal test":
+                case "normal grep.test":
                     normalGrepTest(GREP);
                     break;
-                case "normal test -c":
+                case "normal grep.test -c":
                     normalGrepTest(GREP_C);
                     break;
-                case "abnormal test":
+                case "abnormal grep.test":
                     abnormalGrepTest(GREP);
                     break;
-                case "abnormal test -c":
+                case "abnormal grep.test -c":
                     abnormalGrepTest(GREP_C);
                     break;
                 case "all tests":
@@ -55,30 +55,30 @@ public class GrepTests {
                     abnormalGrepTest(GREP_C);
                     break;
                 default:
-                    System.out.println("please check the test name and re-input, choose from(normal test, abnormal test, all tests):");
+                    System.out.println("please check the grep.test name and re-input, choose from(normal grep.test, abnormal grep.test, all tests):");
             }
-            System.out.println("\nPlease input a test name, choose from(normal test, abnormal test, all tests, EOF):");
+            System.out.println("\nPlease input a grep.test name, choose from(normal grep.test, abnormal grep.test, all tests, EOF):");
         }
     }
 
     public static void normalGrepTest(String command) throws IOException, InterruptedException {
-        System.out.println("\n[normal " + command + " test]:");
+        System.out.println("\n[normal " + command + " grep.test]:");
         boolean rlt = grepTest(ACTIVE_SERVER_ADDRESS_PROPERTIES, command);
         if(rlt){
-            System.out.println("normal " + command + " test passed!");
+            System.out.println("normal " + command + " grep.test passed!");
         }else{
-            System.out.println("normal " + command + " test Failed!");
+            System.out.println("normal " + command + " grep.test Failed!");
         }
     }
 
     public static void abnormalGrepTest(String command) throws IOException, InterruptedException {
-        System.out.println("\n[abnormal " + command + " test]:");
+        System.out.println("\n[abnormal " + command + " grep.test]:");
 
         boolean rlt = grepTest(ABNORMAL_SERVER_ADDRESS_PROPERTIES, command);
         if(rlt){
-            System.out.println("abnormal " + command + " test passed!");
+            System.out.println("abnormal " + command + " grep.test passed!");
         }else{
-            System.out.println("abnormal " + command + " test Failed!");
+            System.out.println("abnormal " + command + " grep.test Failed!");
         }
 
     }
@@ -90,17 +90,17 @@ public class GrepTests {
         // initialize result
         Result result = new Result(ResultType.String);
 
-        // define grep queries - test cases
+        // define grep queries - grep.test cases
         String[] queries = new String[]{
-                // rare or even not exist test cases
+                // rare or even not exist grep.test cases
                 "187.185.87.78",
                 "156.98.57.6",
                 "29.157.145.157",
-                // somewhat frequent test cases
+                // somewhat frequent grep.test cases
                 "Intel Mac OS X 10_7_5",
                 "\"GET\\|PUT\"",
                 "POS*",
-                // frequent test cases
+                // frequent grep.test cases
                 ".",
                 "/",
                 "2022"
@@ -112,11 +112,11 @@ public class GrepTests {
         int amount = Integer.parseInt(properties.getProperty(SERVER_AMOUNT));
         MySocket[] sockets = new MySocket[amount];
 
-        // create socket and connect to server
+        // create socket and connect to grep.server
         for (int i = 0; i < amount; i++) {
             String serverAddress = properties.getProperty(SERVER + i);
             int port = Integer.parseInt(properties.getProperty(PORT + i));
-            // send test message to inform server generate log files
+            // send grep.test message to inform grep.server generate log files
             sockets[i] = new MySocket(serverAddress, port, TEST_COMMAND, "", ServerState.ACTIVE, result);
             executor.execute(sockets[i]);
         }

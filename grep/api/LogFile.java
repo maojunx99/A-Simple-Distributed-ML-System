@@ -1,4 +1,4 @@
-package api;
+package grep.api;
 
 public interface LogFile {
     public void generate();

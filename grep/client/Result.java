@@ -1,4 +1,4 @@
-package client;
+package grep.client;
 
 public class Result {
     private final ResultType resultType;
@@ -6,7 +6,7 @@ public class Result {
     private StringBuffer stringBuffer = new StringBuffer();
 
     public static final String VM_HOME_ADDRESS = "/home/maojunx2/";
-    public static final String VM_LOG_ADDRESS = "mp1/test.log";
+    public static final String VM_LOG_ADDRESS = "mp1/grep.test.log";
 
     public Result(ResultType resultType) {
         this.resultType = resultType;

@@ -1,9 +1,8 @@
-package server;
+package grep.server;
 
-import api.Grep;
-import api.LogFile;
-import api.impl.GrepImpl;
-import api.impl.LogFileImpl;
+import grep.api.LogFile;
+import grep.api.impl.GrepImpl;
+import grep.api.impl.LogFileImpl;
 
 import java.io.*;
 import java.net.Socket;

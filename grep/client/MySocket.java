@@ -1,4 +1,4 @@
-package client;
+package grep.client;
 
 import java.io.*;
 import java.net.Socket;
@@ -33,7 +33,7 @@ public class MySocket extends Thread {
         if (socket == null) return;
         responseMsg = "";
         if (serverState == ServerState.FAILED) {
-            // TODO: add some codes here to check whether the server is recovered
+            // TODO: add some codes here to check whether the grep.server is recovered
             return;
         }
         OutputStream toServer;
@@ -57,7 +57,7 @@ public class MySocket extends Thread {
         }
         DataInputStream inputStream = new DataInputStream(fromServer);
         try {
-            // in case server is blocked
+            // in case grep.server is blocked
             int cnt = 0;
             while (inputStream.available() == 0 && cnt < MAX_SLEEPING_CYCLE) {
                 Thread.sleep(SLEEPING_INTERVAL);

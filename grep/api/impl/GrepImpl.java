@@ -1,6 +1,6 @@
-package api.impl;
+package grep.api.impl;
 
-import api.Grep;
+import grep.api.Grep;
 
 import java.io.*;
 

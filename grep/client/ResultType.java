@@ -1,4 +1,4 @@
-package client;
+package grep.client;
 
 public enum ResultType {
     Integer,

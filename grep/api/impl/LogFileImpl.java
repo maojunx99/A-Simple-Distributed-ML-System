@@ -1,6 +1,6 @@
-package api.impl;
+package grep.api.impl;
 
-import api.LogFile;
+import grep.api.LogFile;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.Random;
 
 public class LogFileImpl implements LogFile {
-    private static String filepath = "test.log";
+    private static String filepath = "grep.test.log";
     private static Random random = new Random();
     private static String content = null;
     public static int num = 100;
