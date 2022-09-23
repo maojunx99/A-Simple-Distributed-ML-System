@@ -1,0 +1,19 @@
+syntax = "proto3";
+package core;
+
+import "google/protobuf/timestamp.proto";
+option java_multiple_files = true;
+
+message Message{
+  string hostName = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  Command command = 3;
+}
+
+enum Command{
+  JOIN = 0;
+  LEAVE = 1;
+  PING = 2;
+  ACK = 3;
+  UPDATE = 4;
+}
