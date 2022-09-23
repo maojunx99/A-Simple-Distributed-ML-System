@@ -32,9 +32,9 @@ public final class ProcessOuterClass {
       "imestamp.proto\"|\n\007Process\022-\n\ttimestamp\030\001" +
       " \001(\0132\032.google.protobuf.Timestamp\022\017\n\007addr" +
       "ess\030\002 \001(\t\022\014\n\004port\030\003 \001(\003\022#\n\006status\030\004 \001(\0162" +
-      "\023.core.ProcessStatus*2\n\rProcessStatus\022\t\n" +
-      "\005ALIVE\020\000\022\t\n\005LEAVE\020\001\022\013\n\007CRASHED\020\002B\002P\001b\006pr" +
-      "oto3"
+      "\023.core.ProcessStatus*3\n\rProcessStatus\022\t\n" +
+      "\005ALIVE\020\000\022\n\n\006LEAVED\020\001\022\013\n\007CRASHED\020\002B\002P\001b\006p" +
+      "roto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

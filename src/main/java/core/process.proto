@@ -6,7 +6,7 @@ option java_multiple_files = true;
 
 enum ProcessStatus{
   ALIVE = 0;
-  LEAVE = 1;
+  LEAVED = 1;
   CRASHED = 2;
 }
 message Process{

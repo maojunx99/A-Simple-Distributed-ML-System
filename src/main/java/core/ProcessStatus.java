@@ -13,9 +13,9 @@ public enum ProcessStatus
    */
   ALIVE(0),
   /**
-   * <code>LEAVE = 1;</code>
+   * <code>LEAVED = 1;</code>
    */
-  LEAVE(1),
+  LEAVED(1),
   /**
    * <code>CRASHED = 2;</code>
    */
@@ -28,9 +28,9 @@ public enum ProcessStatus
    */
   public static final int ALIVE_VALUE = 0;
   /**
-   * <code>LEAVE = 1;</code>
+   * <code>LEAVED = 1;</code>
    */
-  public static final int LEAVE_VALUE = 1;
+  public static final int LEAVED_VALUE = 1;
   /**
    * <code>CRASHED = 2;</code>
    */
@@ -62,7 +62,7 @@ public enum ProcessStatus
   public static ProcessStatus forNumber(int value) {
     switch (value) {
       case 0: return ALIVE;
-      case 1: return LEAVE;
+      case 1: return LEAVED;
       case 2: return CRASHED;
       default: return null;
     }

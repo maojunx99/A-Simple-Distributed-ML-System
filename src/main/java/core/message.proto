@@ -2,12 +2,14 @@ syntax = "proto3";
 package core;
 
 import "google/protobuf/timestamp.proto";
+import "core/process.proto";
 option java_multiple_files = true;
 
 message Message{
   string hostName = 1;
   google.protobuf.Timestamp timestamp = 2;
   Command command = 3;
+  repeated core.Process membershipList = 4;
 }
 
 enum Command{
