@@ -1,30 +1,33 @@
 package service;
 
 import com.google.protobuf.Timestamp;
+import core.Command;
+import core.Message;
 import core.Process;
+import core.ProcessStatus;
+import grep.client.Client;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.time.Instant;
-import java.util.LinkedList;
-import java.util.Properties;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Main class, response to console command
  */
 public class Main {
     // membership list
-    static LinkedList<Process> membershipList = new LinkedList<>();
+    volatile static LinkedList<Process> membershipList = new LinkedList<>();
     // properties file path
-    static String propertiesPath = "/resources/setting.properties";
+    static String propertiesPath = "../setting.properties";
     // ack list
     static boolean[] isAck;
     static int monitorRange;
     static String introducer;
     static int port;
+    static int index;
     private final String hostName;
-    private final Timestamp timestamp;
+    private final String timestamp;
 
     private Main() throws IOException {
         Properties properties = new Properties();
@@ -36,11 +39,11 @@ public class Main {
         InetAddress address = InetAddress.getLocalHost();
         this.hostName = address.getHostName();
         Instant time = Instant.now();
-        this.timestamp = Timestamp.newBuilder().setSeconds(time.getEpochSecond()).build();
+        this.timestamp = Timestamp.newBuilder().setSeconds(time.getEpochSecond()).build().getSeconds() + "";
     }
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         Main main = new Main();
         Scanner scanner = new Scanner(System.in);
         String command;
@@ -58,6 +61,15 @@ public class Main {
                 case "list_self":
                     main.print();
                     break;
+                case "grep":
+                    System.out.println("please input grep content");
+                    String query = scanner.nextLine();
+                    try {
+                        Client.callServers("grep", query);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    break;
                 default:
                     System.out.println("wrong command, please re-input");
             }
@@ -66,28 +78,57 @@ public class Main {
     }
 
     private void display() {
+        // inform other processes to print their membership list
+        Sender.send(Message.newBuilder().setCommand(Command.DISPLAY).build());
+        // display local membership list
         System.out.println("-----------------------------------");
         System.out.println("-         membership list         -");
         System.out.println("-----------------------------------");
-        for (Process process:membershipList) {
+        for (Process process : membershipList) {
             System.out.println(process);
         }
         System.out.println("-----------------------------------");
     }
 
     private void print() {
-        System.out.println("Self ID: " + hostName + "@" + timestamp.getSeconds());
+        System.out.println("Self ID: " + hostName + "@" + timestamp);
     }
 
     private void leave() {
-        //TODO call sender to inform others
-        System.out.println("leaved the group!");
+        //call sender to inform others
+        Sender.send(
+                Message.newBuilder()
+                        .setHostName(hostName)
+                        .setPort(port)
+                        .setTimestamp(timestamp)
+                        .setCommand(Command.LEAVE)
+                        .build()
+        );
+        System.out.println("[INFO] Left the group!");
     }
 
-    private void join() {
-        //TODO call introducer to get list
-
-        //TODO call sender to inform others
-        System.out.println("joined into the group!");
+    private void join() throws InterruptedException {
+        //call introducer to get list
+        Sender.send(
+                Message.newBuilder()
+                        .setHostName(hostName)
+                        .setPort(port)
+                        .setTimestamp(timestamp)
+                        .setCommand(Command.JOIN)
+                        .build()
+        );
+        //call sender to inform others
+        while (membershipList == null) {
+            Thread.sleep(1000);
+        }
+        Sender.send(
+                Message.newBuilder()
+                        .setHostName(hostName)
+                        .setPort(port)
+                        .setCommand(Command.JOIN)
+                        .setTimestamp(timestamp)
+                        .build()
+        );
+        System.out.println("[INFO] Joined into the group!");
     }
 }

@@ -28,6 +28,14 @@ public enum Command
    * <code>UPDATE = 4;</code>
    */
   UPDATE(4),
+  /**
+   * <code>DISPLAY = 5;</code>
+   */
+  DISPLAY(5),
+  /**
+   * <code>WELCOME = 6;</code>
+   */
+  WELCOME(6),
   UNRECOGNIZED(-1),
   ;
 
@@ -51,6 +59,14 @@ public enum Command
    * <code>UPDATE = 4;</code>
    */
   public static final int UPDATE_VALUE = 4;
+  /**
+   * <code>DISPLAY = 5;</code>
+   */
+  public static final int DISPLAY_VALUE = 5;
+  /**
+   * <code>WELCOME = 6;</code>
+   */
+  public static final int WELCOME_VALUE = 6;
 
 
   public final int getNumber() {
@@ -82,6 +98,8 @@ public enum Command
       case 2: return PING;
       case 3: return ACK;
       case 4: return UPDATE;
+      case 5: return DISPLAY;
+      case 6: return WELCOME;
       default: return null;
     }
   }

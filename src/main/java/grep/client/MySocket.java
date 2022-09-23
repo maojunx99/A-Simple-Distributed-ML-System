@@ -68,7 +68,8 @@ public class MySocket extends Thread {
             }
             while (inputStream.available() > 0) {
                 responseMsg = inputStream.readUTF();
-                System.out.println(server_address+": "+responseMsg);
+                System.out.println("Message from: " + server_address);
+                System.out.println(responseMsg);
                 result.add(responseMsg);
             }
         } catch (IOException | InterruptedException e) {

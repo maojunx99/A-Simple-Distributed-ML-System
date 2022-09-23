@@ -1,5 +1,6 @@
 package utils;
 
+import core.Message;
 import core.Process;
 
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
  * used by monitor and receiver
  */
 public class MemberListUpdater {
-    public static void update(List<Process> originList, String message){
+    public static void update(Message message){
         //TODO: implement updating, you can change the second parameter as you want
     }
 }

@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class Client {
-    private static final String PROPERTIES_ADDRESS = "/home/yiteng3/cs425-mp/grep.client/serverAddress.properties";
+    private static final String PROPERTIES_ADDRESS = "serverAddress.properties";
     private static final String SERVER_AMOUNT = "amount";
     private static final String SERVER_STATE = "state";
     private static final String SERVER_ADDRESS = "server";
@@ -58,8 +58,8 @@ public class Client {
 
         // get all grep.server amount from properties file
         Properties properties = new Properties();
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(PROPERTIES_ADDRESS));
-        properties.load(bufferedReader);
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        properties.load(loader.getResourceAsStream(PROPERTIES_ADDRESS));
         int amount = Integer.parseInt(properties.getProperty(SERVER_AMOUNT));
 
         // iterate all grep.server and fetch log from alive grep.server, failed servers will be ignored

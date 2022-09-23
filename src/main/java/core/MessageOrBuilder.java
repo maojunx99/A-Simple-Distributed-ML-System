@@ -20,51 +20,54 @@ public interface MessageOrBuilder extends
       getHostNameBytes();
 
   /**
-   * <code>.google.protobuf.Timestamp timestamp = 2;</code>
-   * @return Whether the timestamp field is set.
+   * <code>int64 port = 2;</code>
+   * @return The port.
    */
-  boolean hasTimestamp();
-  /**
-   * <code>.google.protobuf.Timestamp timestamp = 2;</code>
-   * @return The timestamp.
-   */
-  com.google.protobuf.Timestamp getTimestamp();
-  /**
-   * <code>.google.protobuf.Timestamp timestamp = 2;</code>
-   */
-  com.google.protobuf.TimestampOrBuilder getTimestampOrBuilder();
+  long getPort();
 
   /**
-   * <code>.core.Command command = 3;</code>
+   * <code>string timestamp = 3;</code>
+   * @return The timestamp.
+   */
+  java.lang.String getTimestamp();
+  /**
+   * <code>string timestamp = 3;</code>
+   * @return The bytes for timestamp.
+   */
+  com.google.protobuf.ByteString
+      getTimestampBytes();
+
+  /**
+   * <code>.core.Command command = 4;</code>
    * @return The enum numeric value on the wire for command.
    */
   int getCommandValue();
   /**
-   * <code>.core.Command command = 3;</code>
+   * <code>.core.Command command = 4;</code>
    * @return The command.
    */
   core.Command getCommand();
 
   /**
-   * <code>repeated .core.Process membershipList = 4;</code>
+   * <code>repeated .core.Process membershipList = 5;</code>
    */
   java.util.List<core.Process> 
       getMembershipListList();
   /**
-   * <code>repeated .core.Process membershipList = 4;</code>
+   * <code>repeated .core.Process membershipList = 5;</code>
    */
   core.Process getMembershipList(int index);
   /**
-   * <code>repeated .core.Process membershipList = 4;</code>
+   * <code>repeated .core.Process membershipList = 5;</code>
    */
   int getMembershipListCount();
   /**
-   * <code>repeated .core.Process membershipList = 4;</code>
+   * <code>repeated .core.Process membershipList = 5;</code>
    */
   java.util.List<? extends core.ProcessOrBuilder> 
       getMembershipListOrBuilderList();
   /**
-   * <code>repeated .core.Process membershipList = 4;</code>
+   * <code>repeated .core.Process membershipList = 5;</code>
    */
   core.ProcessOrBuilder getMembershipListOrBuilder(
       int index);

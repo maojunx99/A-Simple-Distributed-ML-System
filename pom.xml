@@ -28,10 +28,10 @@
         <sourceDirectory>src/main/java</sourceDirectory>
         <resources>
             <resource>
-                <directory>src/main</directory>
+                <directory>src/main/resources</directory>
                 <includes>
                     <include>
-                        **/*.properties
+                        *.properties
                     </include>
                 </includes>
             </resource>
