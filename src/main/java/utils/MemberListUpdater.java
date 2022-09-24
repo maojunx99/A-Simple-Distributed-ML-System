@@ -17,7 +17,6 @@ import java.util.List;
  * used by monitor and receiver
  */
 public class MemberListUpdater {
-    static List<Process> membershipList = Main.membershipList;
     public static boolean update(Message message){
         Command commmand = message.getCommand();
         if(commmand == Command.ACK){
@@ -37,11 +36,11 @@ public class MemberListUpdater {
                                     .setTimestamp(message.getTimestamp())
                                     .setStatus(ProcessStatus.ALIVE)
                                     .setPort(message.getPort()).build();
-            insert(process, membershipList);
+            insert(process, Main.membershipList);
             System.out.println(message.getHostName() + " joins the membershipList");
             return true;
         } else if (commmand == Command.LEAVE) {
-            boolean isModified = remove(message, membershipList);
+            boolean isModified = remove(message, Main.membershipList);
             if(!isModified){
                 System.out.println(message.getHostName() + "not exists");
             }
