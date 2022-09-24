@@ -83,7 +83,7 @@ public class Main {
                     main.leave();
                     break;
                 case "list_mem":
-                    display();
+                    listMem();
                     break;
                 case "list_self":
                     main.print();
@@ -103,16 +103,19 @@ public class Main {
         }
         main.join();
     }
-
-    public static void display() {
+    public static void listMem(){
         // inform other processes to print their membership list
         Sender.send(Message.newBuilder().setCommand(Command.DISPLAY).build());
+        display();
+    }
+
+    public static void display() {
         // display local membership list
         System.out.println("-----------------------------------------");
         System.out.println("-            membership list            -");
-        System.out.println("-----------------------------------------");
+        System.out.print("-----------------------------------------");
         for (Process process : membershipList) {
-            System.out.print(process);
+            System.out.print("\n" + process);
             System.out.println("status: " + process.getStatus());
         }
         System.out.println("-----------------------------------------");
@@ -161,7 +164,7 @@ public class Main {
                 Message.newBuilder()
                         .setHostName(hostName)
                         .setPort(port)
-                        .setCommand(Command.JOIN)
+                        .setCommand(Command.UPDATE)
                         .setTimestamp(timestamp)
                         .build()
         );
