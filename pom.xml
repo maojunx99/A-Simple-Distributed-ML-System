@@ -36,5 +36,14 @@
                 </includes>
             </resource>
         </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>service.Main</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 </project>

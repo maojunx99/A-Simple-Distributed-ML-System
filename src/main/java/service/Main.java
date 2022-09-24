@@ -3,6 +3,7 @@ package service;
 import core.Command;
 import core.Message;
 import core.Process;
+import core.ProcessStatus;
 import grep.client.Client;
 import utils.LogGenerator;
 
@@ -47,6 +48,14 @@ public class Main {
         port = Integer.parseInt(properties.getProperty("port"));
         Instant time = Instant.now();
         timestamp = String.valueOf(time.getEpochSecond());
+        membershipList = new ArrayList<>();
+        membershipList.add(Process.newBuilder()
+                                .setAddress(hostName)
+                                .setPort(port)
+                                .setTimestamp(timestamp)
+                                .setStatus(ProcessStatus.ALIVE)
+                                .build()
+        );
     }
 
 
@@ -90,13 +99,13 @@ public class Main {
         // inform other processes to print their membership list
         Sender.send(Message.newBuilder().setCommand(Command.DISPLAY).build());
         // display local membership list
-        System.out.println("-----------------------------------");
-        System.out.println("-         membership list         -");
-        System.out.println("-----------------------------------");
+        System.out.println("-----------------------------------------");
+        System.out.println("-            membership list            -");
+        System.out.println("-----------------------------------------");
         for (Process process : membershipList) {
             System.out.println(process);
         }
-        System.out.println("-----------------------------------");
+        System.out.println("-----------------------------------------");
     }
 
     private void print() {
@@ -106,6 +115,8 @@ public class Main {
     private void leave() {
         //call sender to inform others
         Sender.send(
+                introducer,
+                port,
                 Message.newBuilder()
                         .setHostName(hostName)
                         .setPort(port)
