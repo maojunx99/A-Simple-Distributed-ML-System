@@ -18,11 +18,8 @@ import java.util.List;
  */
 public class MemberListUpdater {
     static List<Process> membershipList = Main.membershipList;
-    public static void update(Message message){
+    public static boolean update(Message message){
         Command commmand = message.getCommand();
-        if(commmand == Command.PING){
-            return;
-        }
         if(commmand == Command.ACK){
             // TODO: 2022/9/23
             for(int i = 0;i < Main.membershipList.size();i++){
@@ -33,6 +30,7 @@ public class MemberListUpdater {
                     break;
                 }
             }
+            return true;
         }else if(commmand == Command.JOIN){
             Process process = Process.newBuilder()
                                     .setAddress(message.getHostName())
@@ -40,13 +38,17 @@ public class MemberListUpdater {
                                     .setPort(message.getPort()).build();
             insert(process, membershipList);
             System.out.println(message.getHostName() + " joins the membershipList");
+            return true;
         } else if (commmand == Command.LEAVE) {
-            if(!remove(message, membershipList)){
+            boolean isModified = remove(message, membershipList);
+            if(!isModified){
                 System.out.println(message.getHostName() + "not exists");
             }
+            return isModified;
         } else if (commmand == Command.UPDATE){
-            updateMemberList(message, Main.membershipList);
+            return updateMemberList(message, Main.membershipList);
         }
+        return false;
     }
     synchronized public static void insert(Process process, List<Process> processList){
         int index = 0;
@@ -87,13 +89,14 @@ public class MemberListUpdater {
 //                .setTimestamp(String.valueOf(Instant.now().getEpochSecond())).build());
 //    }
 
-    synchronized public static void updateMemberList(Message message, List<Process> curMembershipList){
+    synchronized public static boolean updateMemberList(Message message, List<Process> curMembershipList){
         List<Process> newMembershipList = message.getMembershipList();
         //curMembershipList : membershipList on current node
         //newMembershipList : membershipList on input message
         int curLength = curMembershipList.size();
         int newLength = newMembershipList.size();
         int curIndex = 0, newIndex = 0;
+        boolean isModified = false;
         while(curIndex < curLength && newIndex < newLength) {
             Process curProcess = curMembershipList.get(curIndex);
             Process newProcess = newMembershipList.get(newIndex);
@@ -101,6 +104,7 @@ public class MemberListUpdater {
             String newAddress = newProcess.getAddress();
             if(curAddress.compareToIgnoreCase(newAddress) > 0){
                 curMembershipList.add(curIndex, newProcess);
+                isModified = true;
                 System.out.println(newProcess.getAddress() + " is added into "
                                 + Main.hostName + "'s membershipList");
                 newIndex ++;
@@ -116,6 +120,7 @@ public class MemberListUpdater {
                                      .setTimestamp(newTimeStamp).build());
                     System.out.println(curProcess.getAddress() + "'s timestamp is updated in "
                     + Main.hostName + "'s membershipList");
+                    isModified = true;
                 }
                 newIndex ++;
                 curIndex ++;
@@ -127,6 +132,8 @@ public class MemberListUpdater {
             System.out.println(newMembershipList.get(newIndex).getAddress() + " is added into "
                     + Main.hostName + "'s membershipList");
             newIndex ++;
+            isModified = true;
         }
+        return isModified;
     }
 }

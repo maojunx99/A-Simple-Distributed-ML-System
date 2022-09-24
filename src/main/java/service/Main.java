@@ -19,7 +19,7 @@ import java.util.*;
  */
 public class Main {
     // membership list
-    public volatile static List<Process> membershipList = null;
+    public static List<Process> membershipList = null;
     // properties file path
     static String propertiesPath = "../setting.properties";
     // ack list
@@ -80,7 +80,7 @@ public class Main {
                     main.join();
                     break;
                 case "leave":
-                    main.leave();
+                    main.leave(membershipList);
                     break;
                 case "list_mem":
                     listMem();
@@ -125,7 +125,7 @@ public class Main {
         System.out.println("Self ID: " + hostName + "@" + timestamp);
     }
 
-    private void leave() {
+    private void leave(List<Process> list) {
         //call sender to inform others
         Sender.send(
                 Message.newBuilder()
@@ -135,6 +135,13 @@ public class Main {
                         .setCommand(Command.LEAVE)
                         .build()
         );
+        for(int i = 0; i < list.size(); i++){
+            Process process = list.get(i);
+            if(process.getAddress().equals(hostName)){
+                list.set(i, process.toBuilder().setStatus(ProcessStatus.LEAVED).build());
+                break;
+            }
+        }
         System.out.println("[INFO] Left the group!");
     }
 
