@@ -69,8 +69,6 @@ public class Main {
 
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        LogGenerator.logging(LogGenerator.LogType.CRASH, hostName, timestamp);
-        LogGenerator.logging(LogGenerator.LogType.CRASH, hostName, timestamp, "vm1", "123453467");
         Main main = new Main();
         Scanner scanner = new Scanner(System.in);
         String command;
