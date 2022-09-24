@@ -29,7 +29,7 @@ public class MemberListUpdater {
             Process process = Process.newBuilder()
                                     .setAddress(message.getHostName())
                                     .setTimestamp(message.getTimestamp())
-                                    .setPort(ProcessStatus.ALIVE_VALUE).build();
+                                    .setPort(message.getPort()).build();
             insert(process, membershipList);
             System.out.println(message.getHostName() + " joins the membershipList");
         } else if (commmand == Command.LEAVE) {
