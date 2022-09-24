@@ -94,11 +94,10 @@ public class MemberListUpdater {
         List<Process> newMembershipList = message.getMembershipList();
         //curMembershipList : membershipList on current node
         //newMembershipList : membershipList on input message
-        int curLength = curMembershipList.size();
         int newLength = newMembershipList.size();
         int curIndex = 0, newIndex = 0;
         boolean isModified = false;
-        while(curIndex < curLength && newIndex < newLength) {
+        while(curIndex < curMembershipList.size() && newIndex < newLength) {
             Process curProcess = curMembershipList.get(curIndex);
             Process newProcess = newMembershipList.get(newIndex);
             String curAddress = curProcess.getAddress();
