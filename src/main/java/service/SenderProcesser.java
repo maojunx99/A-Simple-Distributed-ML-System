@@ -30,7 +30,7 @@ public class SenderProcesser extends Thread{
                 String address = process.getAddress();
                 long port = process.getPort();
                 DatagramPacket packet = new DatagramPacket(arr, 0, arr.length,
-                        InetAddress.getByName(address), (int) port);
+                        InetAddress.getByName(process.getAddress()), (int) port);
                 datagramSocket.send(packet);
             }
         }catch (IOException e){

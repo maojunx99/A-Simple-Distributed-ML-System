@@ -31,9 +31,11 @@ public class Receiver {
         byte[] data = new byte[1024];
         DatagramPacket packet = new DatagramPacket(data, data.length);
         try {
-            datagramSocket.receive(packet);
-            Message message = Message.parseFrom(data);
-            threadPoolExecutor.execute(new Executor(message));
+            while(true){
+                datagramSocket.receive(packet);
+                Message message = Message.parseFrom(data);
+                threadPoolExecutor.execute(new Executor(message));
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -48,6 +50,7 @@ public class Receiver {
 
         @Override
         public void run() {
+            System.out.println("get " + this.message.getCommand() + " command from "+ this.message.getHostName());
             switch (this.message.getCommand()) {
                 case LEAVE:
                 case WELCOME:
