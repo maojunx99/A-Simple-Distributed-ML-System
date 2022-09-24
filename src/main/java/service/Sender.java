@@ -23,6 +23,8 @@ public class Sender {
     public static void send(Message message) {
         senderThreadPool.execute(new SenderProcesser(message));
     }
-    public static void
+    public static void send(String hostname, int port, Message message){
+        senderThreadPool.execute(new SendSingleProcessor(hostname, port, message));
+    }
 }
 

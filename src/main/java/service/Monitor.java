@@ -1,11 +1,13 @@
 package service;
 
+import core.Command;
 import core.Message;
 import core.Process;
 import utils.MemberListUpdater;
 
 import java.io.IOException;
 import java.net.*;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -18,7 +20,7 @@ public class Monitor extends Thread{
     boolean [] isAck = null;
     public Monitor(List<Process> membershipList) throws SocketException {
         this.membershipList = Main.membershipList;
-        this.isAck = Receiver.isAck;
+        this.isAck = Main.isAck;
         this.datagramSocket = new DatagramSocket();
     }
     @Override
@@ -31,11 +33,17 @@ public class Monitor extends Thread{
                 }
                 // ping 4 neighors every 1 s
                 for(Process process : neighbors){
+                    Message message = Message.newBuilder().setHostName(Main.hostName)
+                                        .setPort(Main.port)
+                                        .setCommand(Command.PING)
+                                        .setTimestamp(String.valueOf(Instant.now().getEpochSecond()))
+                                        .addAllMembershipList(membershipList).build();
+                    byte[] data = message.toByteArray();
                     String address = process.getAddress();
                     long port = process.getPort();
                     DatagramPacket packet = null;
                     try {
-                        packet = new DatagramPacket(ping, 0, ping.length,
+                        packet = new DatagramPacket(data, 0, data.length,
                                 InetAddress.getByName(address), (int) port);
                     } catch (UnknownHostException e) {
                         throw new RuntimeException(e);
@@ -58,7 +66,9 @@ public class Monitor extends Thread{
                 //check whether receive "ACK" from each neighbors
                 for(int k = 0; k < 4; k ++){
                     if(!isAck[k]){
-                        membershipList.remove(k);
+                        // TODO: 2022/9/23  
+                        int l = k - 2 + Main.index;
+                        MemberListUpdater.removeById(l, Main.membershipList);
                     }
                 }
                 //send update message to 4 neighbors

@@ -24,4 +24,17 @@
             <version>3.21.6</version>
         </dependency>
     </dependencies>
+    <build>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>
+                        *.properties
+                    </include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
 </project>
