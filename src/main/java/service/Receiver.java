@@ -40,9 +40,7 @@ public class Receiver extends Thread {
         DatagramPacket packet = new DatagramPacket(data, data.length);
         try {
             while(true){
-                System.out.println("waiting a package");
                 datagramSocket.receive(packet);
-                System.out.println("received a package");
                 byte[] temp = new byte[packet.getLength()];
                 System.arraycopy(data,packet.getOffset(),temp,0,packet.getLength());
                 Message message = Message.parseFrom(temp);
@@ -62,7 +60,7 @@ public class Receiver extends Thread {
 
         @Override
         public void run() {
-            System.out.println("get " + this.message.getCommand() + " command from "+ this.message.getHostName());
+            System.out.println("[MESSAGE] get " + this.message.getCommand() + " command from "+ this.message.getHostName());
             switch (this.message.getCommand()) {
                 case LEAVE:
                     MemberListUpdater.update(message);

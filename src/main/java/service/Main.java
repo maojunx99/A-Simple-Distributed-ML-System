@@ -106,7 +106,7 @@ public class Main {
     }
     public static void listMem(){
         // inform other processes to print their membership list
-        Sender.send(Message.newBuilder().setCommand(Command.DISPLAY).build());
+        Sender.send(Message.newBuilder().setHostName(hostName).setTimestamp(timestamp).setCommand(Command.DISPLAY).build());
         display();
     }
 
@@ -175,6 +175,7 @@ public class Main {
                         .setHostName(hostName)
                         .setPort(port)
                         .setCommand(Command.UPDATE)
+                        .addAllMembership(membershipList)
                         .setTimestamp(timestamp)
                         .build()
         );
