@@ -16,6 +16,9 @@ public class NeighborFilter {
         for (Process process : Main.membershipList) {
             if (process.getAddress().equals(Main.hostName)) {
                 self = cnt;
+                if(process.getStatus()!=ProcessStatus.ALIVE){
+                    cnt++;
+                }
             }
             if (process.getStatus() == ProcessStatus.ALIVE) {
                 temp.add(process);

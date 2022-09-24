@@ -6,6 +6,7 @@ import core.Process;
 import core.ProcessStatus;
 import grep.client.Client;
 import utils.LogGenerator;
+import utils.MemberListUpdater;
 
 import java.io.IOException;
 import java.net.InetAddress;
