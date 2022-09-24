@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.*;
 import java.time.Instant;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -68,7 +69,10 @@ public class Receiver extends Thread {
                     break;
                 case WELCOME:
                     // update membership list
-                    Main.membershipList = message.getMembershipList();
+                    Main.membershipList = new ArrayList<>();
+                    for(Process process : message.getMembershipList()){
+                        Main.membershipList.add(process);
+                    }
                     break;
                 case PING:
                     // response to ping with ack
