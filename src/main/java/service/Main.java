@@ -81,7 +81,7 @@ public class Main {
                     main.join();
                     break;
                 case "leave":
-                    main.leave(membershipList);
+                    main.leave();
                     break;
                 case "list_mem":
                     listMem();
@@ -126,7 +126,7 @@ public class Main {
         System.out.println("Self ID: " + hostName + "@" + timestamp);
     }
 
-    private void leave(List<Process> list) {
+    private void leave() {
         //call sender to inform others
         Sender.send(
                 Message.newBuilder()
@@ -136,10 +136,10 @@ public class Main {
                         .setCommand(Command.LEAVE)
                         .build()
         );
-        for(int i = 0; i < list.size(); i++){
-            Process process = list.get(i);
+        for(int i = 0; i < Main.membershipList.size(); i++){
+            Process process = Main.membershipList.get(i);
             if(process.getAddress().equals(hostName)){
-                list.set(i, process.toBuilder().setStatus(ProcessStatus.LEAVED).build());
+                Main.membershipList.set(i, process.toBuilder().setStatus(ProcessStatus.LEAVED).build());
                 break;
             }
         }
