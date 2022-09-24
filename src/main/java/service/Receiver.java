@@ -64,6 +64,8 @@ public class Receiver extends Thread {
             System.out.println("get " + this.message.getCommand() + " command from "+ this.message.getHostName());
             switch (this.message.getCommand()) {
                 case LEAVE:
+                    MemberListUpdater.update(message);
+                    break;
                 case WELCOME:
                     // update membership list
                     Main.membershipList = message.getMembershipList();
@@ -94,9 +96,10 @@ public class Receiver extends Thread {
                     break;
                 case UPDATE:
                     // update membershipList according to message's membership list
-                    MemberListUpdater.update(message);
-                    Sender.send(Message.newBuilder().setHostName(Main.hostName).setTimestamp(Main.timestamp).setPort(Main.port)
+                    if(MemberListUpdater.update(message)){
+                        Sender.send(Message.newBuilder().setHostName(Main.hostName).setTimestamp(Main.timestamp).setPort(Main.port)
                             .addAllMembership(Main.membershipList).setCommand(Command.UPDATE).build());
+                    }
                     break;
                 case DISPLAY:
                     Main.display();

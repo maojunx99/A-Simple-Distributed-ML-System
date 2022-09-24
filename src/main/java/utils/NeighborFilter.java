@@ -14,13 +14,13 @@ public class NeighborFilter {
         int self = -1;
         List<Process> temp = new ArrayList<>();
         for (Process process : Main.membershipList) {
-            if (process.getStatus() == ProcessStatus.ALIVE) {
-                temp.add(process);
-            }
             if (process.getAddress().equals(Main.hostName)) {
                 self = cnt;
             }
-            cnt++;
+            if (process.getStatus() == ProcessStatus.ALIVE) {
+                temp.add(process);
+                cnt++;
+            }
         }
         if (cnt >= 5) {
             for (int i = 1; i <= Main.monitorRange; i++) {
