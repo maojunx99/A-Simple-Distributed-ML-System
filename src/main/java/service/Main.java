@@ -10,6 +10,7 @@ import utils.LogGenerator;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.net.SocketException;
 import java.time.Instant;
 import java.util.*;
 
@@ -28,6 +29,14 @@ public class Main {
     public static int port;
     public static int index;
     public static final String hostName;
+    private static final Receiver receiver;
+    static{
+        try{
+            receiver = new Receiver();
+        }catch(SocketException e){
+            throw new RuntimeException(e);
+        }
+    }
 
     static {
         try {
@@ -40,6 +49,8 @@ public class Main {
     public static String timestamp;
 
     private Main() throws IOException {
+        Thread receiver = new Thread(new Receiver());
+        receiver.start();
         Properties properties = new Properties();
         properties.load(this.getClass().getResourceAsStream(propertiesPath));
         monitorRange = Integer.parseInt(properties.getProperty("monitor_range"));
@@ -60,8 +71,6 @@ public class Main {
 
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        LogGenerator.logging(LogGenerator.LogType.CRASH, hostName, timestamp);
-        LogGenerator.logging(LogGenerator.LogType.CRASH, hostName, timestamp, "vm1", "123453467");
         Main main = new Main();
         Scanner scanner = new Scanner(System.in);
         String command;
@@ -115,8 +124,6 @@ public class Main {
     private void leave() {
         //call sender to inform others
         Sender.send(
-                introducer,
-                port,
                 Message.newBuilder()
                         .setHostName(hostName)
                         .setPort(port)
@@ -130,6 +137,8 @@ public class Main {
     private void join() throws InterruptedException {
         //call introducer to get list
         Sender.send(
+                introducer,
+                port,
                 Message.newBuilder()
                         .setHostName(hostName)
                         .setPort(port)
@@ -138,7 +147,7 @@ public class Main {
                         .build()
         );
         //call sender to inform others
-        while (membershipList == null) {
+        while (membershipList.size() == 1) {
             Thread.sleep(1000);
         }
         Sender.send(

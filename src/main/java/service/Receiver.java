@@ -19,21 +19,28 @@ import java.util.concurrent.TimeUnit;
 /**
  * multi-threads receive messages from other processes
  */
-public class Receiver {
+public class Receiver extends Thread {
     private DatagramSocket datagramSocket;
     private static final int corePoolSize = 10;
     private static int maximumPoolSize = Integer.MAX_VALUE / 2;
+    ThreadPoolExecutor threadPoolExecutor;
 
     public Receiver() throws SocketException {
         this.datagramSocket = new DatagramSocket(Main.port);
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 0L,
+        threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 0L,
                 TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+
+    }
+    @Override
+    public void run(){
         byte[] data = new byte[1024];
         DatagramPacket packet = new DatagramPacket(data, data.length);
         try {
-            datagramSocket.receive(packet);
-            Message message = Message.parseFrom(data);
-            threadPoolExecutor.execute(new Executor(message));
+            while(true){
+                datagramSocket.receive(packet);
+                Message message = Message.parseFrom(data);
+                threadPoolExecutor.execute(new Executor(message));
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -48,6 +55,7 @@ public class Receiver {
 
         @Override
         public void run() {
+            System.out.println("get " + this.message.getCommand() + " command from "+ this.message.getHostName());
             switch (this.message.getCommand()) {
                 case LEAVE:
                 case WELCOME:
