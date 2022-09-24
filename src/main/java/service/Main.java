@@ -53,7 +53,7 @@ public class Main {
         Properties properties = new Properties();
         properties.load(this.getClass().getResourceAsStream(propertiesPath));
         monitorRange = Integer.parseInt(properties.getProperty("monitor_range"));
-        isAck = new boolean[monitorRange];
+        isAck = new boolean[monitorRange * 2];
         introducer = properties.getProperty("introducer");
         port = Integer.parseInt(properties.getProperty("port"));
         Instant time = Instant.now();
