@@ -35,6 +35,7 @@ public class MemberListUpdater {
             Process process = Process.newBuilder()
                                     .setAddress(message.getHostName())
                                     .setTimestamp(message.getTimestamp())
+                                    .setStatus(ProcessStatus.ALIVE)
                                     .setPort(message.getPort()).build();
             insert(process, membershipList);
             System.out.println(message.getHostName() + " joins the membershipList");
@@ -55,7 +56,7 @@ public class MemberListUpdater {
         for(Process p : processList){
             // check whether process has already existed
             if(p.getAddress().equals(process.getAddress())){
-                processList.set(index, process.toBuilder().setTimestamp(process.getTimestamp()).build());
+                processList.set(index, process.toBuilder().setTimestamp(process.getTimestamp()).setStatus(process.getStatus()).build());
                 return;
             }
             if(p.getAddress().compareTo(process.getAddress()) > 0){
