@@ -26,8 +26,5 @@ public class Sender {
     public static void send(String hostname, int port, Message message){
         senderThreadPool.execute(new SendSingleProcessor(hostname, port, message));
     }
-    static public void send(String hostName, int port, Message message){
-
-    }
 }
 

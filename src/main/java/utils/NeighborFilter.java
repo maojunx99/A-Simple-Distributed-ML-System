@@ -53,20 +53,10 @@ public class NeighborFilter {
                 default:
                     return neighbors;
             }
-            switch (cnt) {
-                case 4:
-                    for (int i = 1; i <= Main.monitorRange; i++) {
-                        int index = self + i;
-                        index -= index >= temp.size() ? temp.size() : 0;
-                        neighbors.add(temp.get(index));
-                    }
-                    break;
-                case 3:
-                    int index = self + 1;
-                    index -= index >= temp.size() ? temp.size() : 0;
-                    neighbors.add(temp.get(index));
-                default:
-                    return neighbors;
+            if (cnt == 4) {
+                int index = self + 1;
+                index -= index >= temp.size() ? temp.size() : 0;
+                neighbors.add(temp.get(index));
             }
         }
         return neighbors;

@@ -3,7 +3,9 @@ package service;
 import core.Command;
 import core.Message;
 import core.Process;
+import core.ProcessStatus;
 import utils.MemberListUpdater;
+import utils.NeighborFilter;
 
 import java.io.IOException;
 import java.net.*;
@@ -32,12 +34,13 @@ public class Monitor extends Thread{
                     isAck[j] = false;
                 }
                 // ping 4 neighors every 1 s
+                List<Process> neighbors = NeighborFilter.getNeighbors();
                 for(Process process : neighbors){
                     Message message = Message.newBuilder().setHostName(Main.hostName)
                                         .setPort(Main.port)
                                         .setCommand(Command.PING)
                                         .setTimestamp(String.valueOf(Instant.now().getEpochSecond()))
-                                        .addAllMembershipList(membershipList).build();
+                                        .addAllMembership(membershipList).build();
                     byte[] data = message.toByteArray();
                     String address = process.getAddress();
                     long port = process.getPort();
@@ -64,16 +67,15 @@ public class Monitor extends Thread{
                     throw new RuntimeException(e);
                 }
                 //check whether receive "ACK" from each neighbors
-                for(int k = 0; k < 4; k ++){
+                for(int k = 0; k < neighbors.size(); k ++){
                     if(!isAck[k]){
-                        // TODO: 2022/9/23  
-                        int l = k - 2 + Main.index;
-                        MemberListUpdater.removeById(l, Main.membershipList);
+                        neighbors.set(k, neighbors.get(k).toBuilder().setStatus(ProcessStatus.CRASHED).build());
                     }
                 }
                 //send update message to 4 neighbors
-                Message newMessage =
-                MemberListUpdater.update();
+                Message message = Message.newBuilder().setCommand(Command.UPDATE).setHostName(Main.hostName)
+                        .setPort(Main.port).setTimestamp(Main.timestamp).addAllMembership(Main.membershipList).build();
+                Sender.send(message);
             }
         }
     }

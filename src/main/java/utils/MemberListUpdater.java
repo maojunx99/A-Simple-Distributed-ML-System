@@ -66,17 +66,17 @@ public class MemberListUpdater {
         return false;
     }
 
-    synchronized public static void removeById(int id, List<Process> processList){
-        //if current process do
-        if(id < 0 || id > processList.size() - 1){
-            return;
-        }
-        processList.set(id, processList.get(id).toBuilder().setStatus(ProcessStatus.CRASHED)
-                .setTimestamp(String.valueOf(Instant.now().getEpochSecond())).build());
-    }
+//    synchronized public static void removeById(String hostname, List<Process> processList){
+//        //if current process do
+//        for(Process process : processList){
+//            if
+//        }
+//        processList.set(id, processList.get(id).toBuilder().setStatus(ProcessStatus.CRASHED)
+//                .setTimestamp(String.valueOf(Instant.now().getEpochSecond())).build());
+//    }
 
     synchronized public static void updateMemberList(Message message, List<Process> curMembershipList){
-        List<Process> newMembershipList = message.getMembershipListList();
+        List<Process> newMembershipList = message.getMembershipList();
         //curMembershipList : membershipList on current node
         //newMembershipList : membershipList on input message
         int curLength = curMembershipList.size();

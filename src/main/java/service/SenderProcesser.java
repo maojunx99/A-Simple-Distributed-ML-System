@@ -1,9 +1,12 @@
 package service;
 
 import core.Message;
+import core.Process;
+import utils.NeighborFilter;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.List;
 
 public class SenderProcesser extends Thread{
     private Message message;
@@ -20,14 +23,16 @@ public class SenderProcesser extends Thread{
         } catch (SocketException e) {
             throw new RuntimeException(e);
         }
-        String address = message.getHostName();
-        long port = message.getPort();
         byte[] arr = message.toByteArray();
+        List<Process> processList = NeighborFilter.getNeighbors();
         try {
-            DatagramPacket packet = null;
-            packet = new DatagramPacket(arr, 0, arr.length,
-                    InetAddress.getByName(address), (int) port);
-            datagramSocket.send(packet);
+            for(Process process : processList){
+                String address = process.getAddress();
+                long port = process.getPort();
+                DatagramPacket packet = new DatagramPacket(arr, 0, arr.length,
+                        InetAddress.getByName(address), (int) port);
+                datagramSocket.send(packet);
+            }
         }catch (IOException e){
             throw new RuntimeException(e);
         }
