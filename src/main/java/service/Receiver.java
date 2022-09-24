@@ -7,9 +7,7 @@ import utils.MemberListUpdater;
 import utils.NeighborFilter;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketException;
+import java.net.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -26,7 +24,11 @@ public class Receiver extends Thread {
     ThreadPoolExecutor threadPoolExecutor;
 
     public Receiver() throws SocketException {
-        this.datagramSocket = new DatagramSocket(Main.port);
+        try {
+            this.datagramSocket = new DatagramSocket(Main.port, InetAddress.getByName(Main.hostName));
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
         threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 0L,
                 TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
@@ -37,8 +39,12 @@ public class Receiver extends Thread {
         DatagramPacket packet = new DatagramPacket(data, data.length);
         try {
             while(true){
+                System.out.println("waiting a package");
                 datagramSocket.receive(packet);
-                Message message = Message.parseFrom(data);
+                System.out.println("received a package");
+                byte[] temp = new byte[packet.getLength()];
+                System.arraycopy(data,packet.getOffset(),temp,0,packet.getLength());
+                Message message = Message.parseFrom(temp);
                 threadPoolExecutor.execute(new Executor(message));
             }
         } catch (IOException e) {
@@ -99,6 +105,8 @@ public class Receiver extends Thread {
                     // add this to membershipList and response with WELCOME message
                     MemberListUpdater.update(message);
                     Sender.send(
+                            message.getHostName(),
+                            (int)message.getPort(),
                             Message.newBuilder()
                                     .setCommand(Command.WELCOME)
                                     .setHostName(Main.hostName)
