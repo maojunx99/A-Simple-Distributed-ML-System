@@ -19,7 +19,7 @@ private static final long serialVersionUID = 0L;
     hostName_ = "";
     timestamp_ = "";
     command_ = 0;
-    membershipList_ = java.util.Collections.emptyList();
+    membership_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -78,10 +78,10 @@ private static final long serialVersionUID = 0L;
           }
           case 42: {
             if (!((mutable_bitField0_ & 0x00000001) != 0)) {
-              membershipList_ = new java.util.ArrayList<core.Process>();
+              membership_ = new java.util.ArrayList<core.Process>();
               mutable_bitField0_ |= 0x00000001;
             }
-            membershipList_.add(
+            membership_.add(
                 input.readMessage(core.Process.parser(), extensionRegistry));
             break;
           }
@@ -101,7 +101,7 @@ private static final long serialVersionUID = 0L;
           e).setUnfinishedMessage(this);
     } finally {
       if (((mutable_bitField0_ & 0x00000001) != 0)) {
-        membershipList_ = java.util.Collections.unmodifiableList(membershipList_);
+        membership_ = java.util.Collections.unmodifiableList(membership_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -226,44 +226,44 @@ private static final long serialVersionUID = 0L;
     return result == null ? core.Command.UNRECOGNIZED : result;
   }
 
-  public static final int MEMBERSHIPLIST_FIELD_NUMBER = 5;
-  private java.util.List<core.Process> membershipList_;
+  public static final int MEMBERSHIP_FIELD_NUMBER = 5;
+  private java.util.List<core.Process> membership_;
   /**
-   * <code>repeated .core.Process membershipList = 5;</code>
+   * <code>repeated .core.Process membership = 5;</code>
    */
   @java.lang.Override
-  public java.util.List<core.Process> getMembershipListList() {
-    return membershipList_;
+  public java.util.List<core.Process> getMembershipList() {
+    return membership_;
   }
   /**
-   * <code>repeated .core.Process membershipList = 5;</code>
+   * <code>repeated .core.Process membership = 5;</code>
    */
   @java.lang.Override
   public java.util.List<? extends core.ProcessOrBuilder> 
-      getMembershipListOrBuilderList() {
-    return membershipList_;
+      getMembershipOrBuilderList() {
+    return membership_;
   }
   /**
-   * <code>repeated .core.Process membershipList = 5;</code>
+   * <code>repeated .core.Process membership = 5;</code>
    */
   @java.lang.Override
-  public int getMembershipListCount() {
-    return membershipList_.size();
+  public int getMembershipCount() {
+    return membership_.size();
   }
   /**
-   * <code>repeated .core.Process membershipList = 5;</code>
+   * <code>repeated .core.Process membership = 5;</code>
    */
   @java.lang.Override
-  public core.Process getMembershipList(int index) {
-    return membershipList_.get(index);
+  public core.Process getMembership(int index) {
+    return membership_.get(index);
   }
   /**
-   * <code>repeated .core.Process membershipList = 5;</code>
+   * <code>repeated .core.Process membership = 5;</code>
    */
   @java.lang.Override
-  public core.ProcessOrBuilder getMembershipListOrBuilder(
+  public core.ProcessOrBuilder getMembershipOrBuilder(
       int index) {
-    return membershipList_.get(index);
+    return membership_.get(index);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -292,8 +292,8 @@ private static final long serialVersionUID = 0L;
     if (command_ != core.Command.JOIN.getNumber()) {
       output.writeEnum(4, command_);
     }
-    for (int i = 0; i < membershipList_.size(); i++) {
-      output.writeMessage(5, membershipList_.get(i));
+    for (int i = 0; i < membership_.size(); i++) {
+      output.writeMessage(5, membership_.get(i));
     }
     unknownFields.writeTo(output);
   }
@@ -318,9 +318,9 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(4, command_);
     }
-    for (int i = 0; i < membershipList_.size(); i++) {
+    for (int i = 0; i < membership_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(5, membershipList_.get(i));
+        .computeMessageSize(5, membership_.get(i));
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -344,8 +344,8 @@ private static final long serialVersionUID = 0L;
     if (!getTimestamp()
         .equals(other.getTimestamp())) return false;
     if (command_ != other.command_) return false;
-    if (!getMembershipListList()
-        .equals(other.getMembershipListList())) return false;
+    if (!getMembershipList()
+        .equals(other.getMembershipList())) return false;
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -366,9 +366,9 @@ private static final long serialVersionUID = 0L;
     hash = (53 * hash) + getTimestamp().hashCode();
     hash = (37 * hash) + COMMAND_FIELD_NUMBER;
     hash = (53 * hash) + command_;
-    if (getMembershipListCount() > 0) {
-      hash = (37 * hash) + MEMBERSHIPLIST_FIELD_NUMBER;
-      hash = (53 * hash) + getMembershipListList().hashCode();
+    if (getMembershipCount() > 0) {
+      hash = (37 * hash) + MEMBERSHIP_FIELD_NUMBER;
+      hash = (53 * hash) + getMembershipList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -498,7 +498,7 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
-        getMembershipListFieldBuilder();
+        getMembershipFieldBuilder();
       }
     }
     @java.lang.Override
@@ -512,11 +512,11 @@ private static final long serialVersionUID = 0L;
 
       command_ = 0;
 
-      if (membershipListBuilder_ == null) {
-        membershipList_ = java.util.Collections.emptyList();
+      if (membershipBuilder_ == null) {
+        membership_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
       } else {
-        membershipListBuilder_.clear();
+        membershipBuilder_.clear();
       }
       return this;
     }
@@ -549,14 +549,14 @@ private static final long serialVersionUID = 0L;
       result.port_ = port_;
       result.timestamp_ = timestamp_;
       result.command_ = command_;
-      if (membershipListBuilder_ == null) {
+      if (membershipBuilder_ == null) {
         if (((bitField0_ & 0x00000001) != 0)) {
-          membershipList_ = java.util.Collections.unmodifiableList(membershipList_);
+          membership_ = java.util.Collections.unmodifiableList(membership_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
-        result.membershipList_ = membershipList_;
+        result.membership_ = membership_;
       } else {
-        result.membershipList_ = membershipListBuilder_.build();
+        result.membership_ = membershipBuilder_.build();
       }
       onBuilt();
       return result;
@@ -620,29 +620,29 @@ private static final long serialVersionUID = 0L;
       if (other.command_ != 0) {
         setCommandValue(other.getCommandValue());
       }
-      if (membershipListBuilder_ == null) {
-        if (!other.membershipList_.isEmpty()) {
-          if (membershipList_.isEmpty()) {
-            membershipList_ = other.membershipList_;
+      if (membershipBuilder_ == null) {
+        if (!other.membership_.isEmpty()) {
+          if (membership_.isEmpty()) {
+            membership_ = other.membership_;
             bitField0_ = (bitField0_ & ~0x00000001);
           } else {
-            ensureMembershipListIsMutable();
-            membershipList_.addAll(other.membershipList_);
+            ensureMembershipIsMutable();
+            membership_.addAll(other.membership_);
           }
           onChanged();
         }
       } else {
-        if (!other.membershipList_.isEmpty()) {
-          if (membershipListBuilder_.isEmpty()) {
-            membershipListBuilder_.dispose();
-            membershipListBuilder_ = null;
-            membershipList_ = other.membershipList_;
+        if (!other.membership_.isEmpty()) {
+          if (membershipBuilder_.isEmpty()) {
+            membershipBuilder_.dispose();
+            membershipBuilder_ = null;
+            membership_ = other.membership_;
             bitField0_ = (bitField0_ & ~0x00000001);
-            membershipListBuilder_ = 
+            membershipBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                 getMembershipListFieldBuilder() : null;
+                 getMembershipFieldBuilder() : null;
           } else {
-            membershipListBuilder_.addAllMessages(other.membershipList_);
+            membershipBuilder_.addAllMessages(other.membership_);
           }
         }
       }
@@ -913,244 +913,244 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.util.List<core.Process> membershipList_ =
+    private java.util.List<core.Process> membership_ =
       java.util.Collections.emptyList();
-    private void ensureMembershipListIsMutable() {
+    private void ensureMembershipIsMutable() {
       if (!((bitField0_ & 0x00000001) != 0)) {
-        membershipList_ = new java.util.ArrayList<core.Process>(membershipList_);
+        membership_ = new java.util.ArrayList<core.Process>(membership_);
         bitField0_ |= 0x00000001;
        }
     }
 
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        core.Process, core.Process.Builder, core.ProcessOrBuilder> membershipListBuilder_;
+        core.Process, core.Process.Builder, core.ProcessOrBuilder> membershipBuilder_;
 
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public java.util.List<core.Process> getMembershipListList() {
-      if (membershipListBuilder_ == null) {
-        return java.util.Collections.unmodifiableList(membershipList_);
+    public java.util.List<core.Process> getMembershipList() {
+      if (membershipBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(membership_);
       } else {
-        return membershipListBuilder_.getMessageList();
+        return membershipBuilder_.getMessageList();
       }
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public int getMembershipListCount() {
-      if (membershipListBuilder_ == null) {
-        return membershipList_.size();
+    public int getMembershipCount() {
+      if (membershipBuilder_ == null) {
+        return membership_.size();
       } else {
-        return membershipListBuilder_.getCount();
+        return membershipBuilder_.getCount();
       }
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public core.Process getMembershipList(int index) {
-      if (membershipListBuilder_ == null) {
-        return membershipList_.get(index);
+    public core.Process getMembership(int index) {
+      if (membershipBuilder_ == null) {
+        return membership_.get(index);
       } else {
-        return membershipListBuilder_.getMessage(index);
+        return membershipBuilder_.getMessage(index);
       }
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public Builder setMembershipList(
+    public Builder setMembership(
         int index, core.Process value) {
-      if (membershipListBuilder_ == null) {
+      if (membershipBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureMembershipListIsMutable();
-        membershipList_.set(index, value);
+        ensureMembershipIsMutable();
+        membership_.set(index, value);
         onChanged();
       } else {
-        membershipListBuilder_.setMessage(index, value);
+        membershipBuilder_.setMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public Builder setMembershipList(
+    public Builder setMembership(
         int index, core.Process.Builder builderForValue) {
-      if (membershipListBuilder_ == null) {
-        ensureMembershipListIsMutable();
-        membershipList_.set(index, builderForValue.build());
+      if (membershipBuilder_ == null) {
+        ensureMembershipIsMutable();
+        membership_.set(index, builderForValue.build());
         onChanged();
       } else {
-        membershipListBuilder_.setMessage(index, builderForValue.build());
+        membershipBuilder_.setMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public Builder addMembershipList(core.Process value) {
-      if (membershipListBuilder_ == null) {
+    public Builder addMembership(core.Process value) {
+      if (membershipBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureMembershipListIsMutable();
-        membershipList_.add(value);
+        ensureMembershipIsMutable();
+        membership_.add(value);
         onChanged();
       } else {
-        membershipListBuilder_.addMessage(value);
+        membershipBuilder_.addMessage(value);
       }
       return this;
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public Builder addMembershipList(
+    public Builder addMembership(
         int index, core.Process value) {
-      if (membershipListBuilder_ == null) {
+      if (membershipBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureMembershipListIsMutable();
-        membershipList_.add(index, value);
+        ensureMembershipIsMutable();
+        membership_.add(index, value);
         onChanged();
       } else {
-        membershipListBuilder_.addMessage(index, value);
+        membershipBuilder_.addMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public Builder addMembershipList(
+    public Builder addMembership(
         core.Process.Builder builderForValue) {
-      if (membershipListBuilder_ == null) {
-        ensureMembershipListIsMutable();
-        membershipList_.add(builderForValue.build());
+      if (membershipBuilder_ == null) {
+        ensureMembershipIsMutable();
+        membership_.add(builderForValue.build());
         onChanged();
       } else {
-        membershipListBuilder_.addMessage(builderForValue.build());
+        membershipBuilder_.addMessage(builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public Builder addMembershipList(
+    public Builder addMembership(
         int index, core.Process.Builder builderForValue) {
-      if (membershipListBuilder_ == null) {
-        ensureMembershipListIsMutable();
-        membershipList_.add(index, builderForValue.build());
+      if (membershipBuilder_ == null) {
+        ensureMembershipIsMutable();
+        membership_.add(index, builderForValue.build());
         onChanged();
       } else {
-        membershipListBuilder_.addMessage(index, builderForValue.build());
+        membershipBuilder_.addMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public Builder addAllMembershipList(
+    public Builder addAllMembership(
         java.lang.Iterable<? extends core.Process> values) {
-      if (membershipListBuilder_ == null) {
-        ensureMembershipListIsMutable();
+      if (membershipBuilder_ == null) {
+        ensureMembershipIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, membershipList_);
+            values, membership_);
         onChanged();
       } else {
-        membershipListBuilder_.addAllMessages(values);
+        membershipBuilder_.addAllMessages(values);
       }
       return this;
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public Builder clearMembershipList() {
-      if (membershipListBuilder_ == null) {
-        membershipList_ = java.util.Collections.emptyList();
+    public Builder clearMembership() {
+      if (membershipBuilder_ == null) {
+        membership_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
       } else {
-        membershipListBuilder_.clear();
+        membershipBuilder_.clear();
       }
       return this;
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public Builder removeMembershipList(int index) {
-      if (membershipListBuilder_ == null) {
-        ensureMembershipListIsMutable();
-        membershipList_.remove(index);
+    public Builder removeMembership(int index) {
+      if (membershipBuilder_ == null) {
+        ensureMembershipIsMutable();
+        membership_.remove(index);
         onChanged();
       } else {
-        membershipListBuilder_.remove(index);
+        membershipBuilder_.remove(index);
       }
       return this;
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public core.Process.Builder getMembershipListBuilder(
+    public core.Process.Builder getMembershipBuilder(
         int index) {
-      return getMembershipListFieldBuilder().getBuilder(index);
+      return getMembershipFieldBuilder().getBuilder(index);
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public core.ProcessOrBuilder getMembershipListOrBuilder(
+    public core.ProcessOrBuilder getMembershipOrBuilder(
         int index) {
-      if (membershipListBuilder_ == null) {
-        return membershipList_.get(index);  } else {
-        return membershipListBuilder_.getMessageOrBuilder(index);
+      if (membershipBuilder_ == null) {
+        return membership_.get(index);  } else {
+        return membershipBuilder_.getMessageOrBuilder(index);
       }
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
     public java.util.List<? extends core.ProcessOrBuilder> 
-         getMembershipListOrBuilderList() {
-      if (membershipListBuilder_ != null) {
-        return membershipListBuilder_.getMessageOrBuilderList();
+         getMembershipOrBuilderList() {
+      if (membershipBuilder_ != null) {
+        return membershipBuilder_.getMessageOrBuilderList();
       } else {
-        return java.util.Collections.unmodifiableList(membershipList_);
+        return java.util.Collections.unmodifiableList(membership_);
       }
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public core.Process.Builder addMembershipListBuilder() {
-      return getMembershipListFieldBuilder().addBuilder(
+    public core.Process.Builder addMembershipBuilder() {
+      return getMembershipFieldBuilder().addBuilder(
           core.Process.getDefaultInstance());
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
-    public core.Process.Builder addMembershipListBuilder(
+    public core.Process.Builder addMembershipBuilder(
         int index) {
-      return getMembershipListFieldBuilder().addBuilder(
+      return getMembershipFieldBuilder().addBuilder(
           index, core.Process.getDefaultInstance());
     }
     /**
-     * <code>repeated .core.Process membershipList = 5;</code>
+     * <code>repeated .core.Process membership = 5;</code>
      */
     public java.util.List<core.Process.Builder> 
-         getMembershipListBuilderList() {
-      return getMembershipListFieldBuilder().getBuilderList();
+         getMembershipBuilderList() {
+      return getMembershipFieldBuilder().getBuilderList();
     }
     private com.google.protobuf.RepeatedFieldBuilderV3<
         core.Process, core.Process.Builder, core.ProcessOrBuilder> 
-        getMembershipListFieldBuilder() {
-      if (membershipListBuilder_ == null) {
-        membershipListBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+        getMembershipFieldBuilder() {
+      if (membershipBuilder_ == null) {
+        membershipBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             core.Process, core.Process.Builder, core.ProcessOrBuilder>(
-                membershipList_,
+                membership_,
                 ((bitField0_ & 0x00000001) != 0),
                 getParentForChildren(),
                 isClean());
-        membershipList_ = null;
+        membership_ = null;
       }
-      return membershipListBuilder_;
+      return membershipBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

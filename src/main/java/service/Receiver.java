@@ -2,12 +2,16 @@ package service;
 
 import core.Command;
 import core.Message;
+import core.Process;
+import utils.MemberListUpdater;
+import utils.NeighborFilter;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Socket;
 import java.net.SocketException;
+import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -18,7 +22,8 @@ import java.util.concurrent.TimeUnit;
 public class Receiver {
     private DatagramSocket datagramSocket;
     private static final int corePoolSize = 10;
-    private static int maximumPoolSize = Integer.MAX_VALUE/2;
+    private static int maximumPoolSize = Integer.MAX_VALUE / 2;
+
     public Receiver() throws SocketException {
         this.datagramSocket = new DatagramSocket(Main.port);
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 0L,
@@ -33,35 +38,66 @@ public class Receiver {
             throw new RuntimeException(e);
         }
     }
-    static class Executor extends Thread{
+
+    static class Executor extends Thread {
         Message message;
-        public Executor(Message message){
+
+        public Executor(Message message) {
             this.message = message;
         }
-        @Override
-        public void run(){
-            switch (this.message.getCommand()){
-                case LEAVE:
-                    // TODO remove certain process from list
 
+        @Override
+        public void run() {
+            switch (this.message.getCommand()) {
+                case LEAVE:
+                case WELCOME:
+                    // update membership list
+                    Main.membershipList = message.getMembershipList();
                     break;
                 case PING:
-                    //TODO response to ping
-                    break;
-                case WELCOME:
-                    // TODO update membershipList and send update message to neighbors
+                    // response to ping with ack
+                    Main.timestamp = String.valueOf(Instant.now().getEpochSecond());
+                    Sender.send(
+                            message.getHostName(),
+                            (int) message.getPort(),
+                            Message.newBuilder()
+                                    .setHostName(Main.hostName)
+                                    .setTimestamp(Main.timestamp)
+                                    .setPort(Main.port)
+                                    .setCommand(Command.ACK)
+                                    .build()
+                    );
                     break;
                 case ACK:
-                    // TODO modify isAck
+                    // modify isAck
+                    List<Process> neighbor = NeighborFilter.getNeighbors();
+                    for (int i = 0; i < neighbor.size(); i++) {
+                        if(message.getHostName().equals(neighbor.get(i).getAddress())){
+                            Main.isAck[i] = true;
+                            break;
+                        }
+                    }
                     break;
                 case UPDATE:
-                    // TODO update membershipList according to message's membership list
+                    // update membershipList according to message's membership list
+                    MemberListUpdater.update(message);
+                    Sender.send(Message.newBuilder().setHostName(Main.hostName).setTimestamp(Main.timestamp).setPort(Main.port)
+                            .addAllMembership(Main.membershipList).setCommand(Command.UPDATE).build());
                     break;
                 case DISPLAY:
-                    // TODO
+                    Main.display();
                     break;
                 case JOIN:
-                    // TODO add this to membershipList and response with WELCOME message
+                    // add this to membershipList and response with WELCOME message
+                    MemberListUpdater.update(message);
+                    Sender.send(
+                            Message.newBuilder()
+                                    .setCommand(Command.WELCOME)
+                                    .setHostName(Main.hostName)
+                                    .setTimestamp(Main.timestamp)
+                                    .setPort(Main.port)
+                                    .addAllMembership(Main.membershipList).build()
+                    );
                     break;
                 default:
                     break;
