@@ -128,6 +128,14 @@ public class Main {
 
     private void leave() {
         //call sender to inform others
+        for(int i = 0; i < Main.membershipList.size(); i++){
+            Process process = Main.membershipList.get(i);
+            if(process.getAddress().equals(hostName)){
+                timestamp = Instant.now().getEpochSecond()+"";
+                Main.membershipList.set(i, process.toBuilder().setStatus(ProcessStatus.LEAVED).setTimestamp(timestamp).build());
+                break;
+            }
+        }
         Sender.send(
                 Message.newBuilder()
                         .setHostName(hostName)
@@ -136,18 +144,12 @@ public class Main {
                         .setCommand(Command.LEAVE)
                         .build()
         );
-        for(int i = 0; i < Main.membershipList.size(); i++){
-            Process process = Main.membershipList.get(i);
-            if(process.getAddress().equals(hostName)){
-                Main.membershipList.set(i, process.toBuilder().setStatus(ProcessStatus.LEAVED).build());
-                break;
-            }
-        }
         System.out.println("[INFO] Left the group!");
     }
 
     private void join() throws InterruptedException {
         //call introducer to get list
+        timestamp = Instant.now().getEpochSecond() + "";
         Sender.send(
                 introducer,
                 port,

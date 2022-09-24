@@ -55,6 +55,7 @@ public class MemberListUpdater {
         for(Process p : processList){
             // check whether process has already existed
             if(p.getAddress().equals(process.getAddress())){
+                processList.set(index, process.toBuilder().setTimestamp(process.getTimestamp()).build());
                 return;
             }
             if(p.getAddress().compareTo(process.getAddress()) > 0){
