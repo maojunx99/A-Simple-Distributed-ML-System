@@ -49,6 +49,8 @@ public class Main {
     public static String timestamp;
 
     private Main() throws IOException {
+        Thread receiver = new Thread(new Receiver());
+        receiver.start();
         Properties properties = new Properties();
         properties.load(this.getClass().getResourceAsStream(propertiesPath));
         monitorRange = Integer.parseInt(properties.getProperty("monitor_range"));
