@@ -4,6 +4,7 @@ import core.Command;
 import core.Message;
 import core.Process;
 import grep.client.Client;
+import utils.LogGenerator;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -16,7 +17,7 @@ import java.util.*;
  */
 public class Main {
     // membership list
-    public volatile static List<Process> membershipList;
+    public volatile static List<Process> membershipList = null;
     // properties file path
     static String propertiesPath = "../setting.properties";
     // ack list
@@ -38,7 +39,6 @@ public class Main {
     public static String timestamp;
 
     private Main() throws IOException {
-        membershipList = new ArrayList<>();
         Properties properties = new Properties();
         properties.load(this.getClass().getResourceAsStream(propertiesPath));
         monitorRange = Integer.parseInt(properties.getProperty("monitor_range"));
@@ -51,6 +51,8 @@ public class Main {
 
 
     public static void main(String[] args) throws IOException, InterruptedException {
+        LogGenerator.logging(LogGenerator.LogType.CRASH, hostName, timestamp);
+        LogGenerator.logging(LogGenerator.LogType.CRASH, hostName, timestamp, "vm1", "123453467");
         Main main = new Main();
         Scanner scanner = new Scanner(System.in);
         String command;
@@ -63,7 +65,7 @@ public class Main {
                     main.leave();
                     break;
                 case "list_mem":
-                    main.display();
+                    display();
                     break;
                 case "list_self":
                     main.print();

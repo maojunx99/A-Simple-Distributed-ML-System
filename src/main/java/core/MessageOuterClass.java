@@ -29,13 +29,12 @@ public final class MessageOuterClass {
   static {
     java.lang.String[] descriptorData = {
       "\n\022core/message.proto\022\004core\032\022core/process" +
-      ".proto\"\203\001\n\007Message\022\020\n\010hostName\030\001 \001(\t\022\014\n\004" +
-      "port\030\002 \001(\003\022\021\n\ttimestamp\030\003 \001(\t\022\036\n\007command" +
-      "\030\004 \001(\0162\r.core.Command\022%\n\016membershipList\030" +
-      "\005 \003(\0132\r.core.Process*W\n\007Command\022\010\n\004JOIN\020" +
-      "\000\022\t\n\005LEAVE\020\001\022\010\n\004PING\020\002\022\007\n\003ACK\020\003\022\n\n\006UPDAT" +
-      "E\020\004\022\013\n\007DISPLAY\020\005\022\013\n\007WELCOME\020\006B\002P\001b\006proto" +
-      "3"
+      ".proto\"\177\n\007Message\022\020\n\010hostName\030\001 \001(\t\022\014\n\004p" +
+      "ort\030\002 \001(\003\022\021\n\ttimestamp\030\003 \001(\t\022\036\n\007command\030" +
+      "\004 \001(\0162\r.core.Command\022!\n\nmembership\030\005 \003(\013" +
+      "2\r.core.Process*W\n\007Command\022\010\n\004JOIN\020\000\022\t\n\005" +
+      "LEAVE\020\001\022\010\n\004PING\020\002\022\007\n\003ACK\020\003\022\n\n\006UPDATE\020\004\022\013" +
+      "\n\007DISPLAY\020\005\022\013\n\007WELCOME\020\006B\002P\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -47,7 +46,7 @@ public final class MessageOuterClass {
     internal_static_core_Message_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_core_Message_descriptor,
-        new java.lang.String[] { "HostName", "Port", "Timestamp", "Command", "MembershipList", });
+        new java.lang.String[] { "HostName", "Port", "Timestamp", "Command", "Membership", });
     core.ProcessOuterClass.getDescriptor();
   }
 

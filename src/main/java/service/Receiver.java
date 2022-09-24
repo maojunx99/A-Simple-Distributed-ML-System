@@ -2,13 +2,16 @@ package service;
 
 import core.Command;
 import core.Message;
+import core.Process;
 import utils.MemberListUpdater;
+import utils.NeighborFilter;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +52,7 @@ public class Receiver {
                 case LEAVE:
                 case WELCOME:
                     // update membership list
-                    MemberListUpdater.update(message);
+                    Main.membershipList = message.getMembershipList();
                     break;
                 case PING:
                     // response to ping with ack
@@ -67,9 +70,11 @@ public class Receiver {
                     break;
                 case ACK:
                     // modify isAck
-                    for (int i = -2; i < 3; i++) {
-                        if (Main.membershipList.get(Main.index + i).getAddress().equals(message.getHostName())) {
-                            Main.isAck[i < 0 ? i + 2 : i + 1] = true;
+                    List<Process> neighbor = NeighborFilter.getNeighbors();
+                    for (int i = 0; i < neighbor.size(); i++) {
+                        if(message.getHostName().equals(neighbor.get(i).getAddress())){
+                            Main.isAck[i] = true;
+                            break;
                         }
                     }
                     break;
@@ -77,7 +82,7 @@ public class Receiver {
                     // update membershipList according to message's membership list
                     MemberListUpdater.update(message);
                     Sender.send(Message.newBuilder().setHostName(Main.hostName).setTimestamp(Main.timestamp).setPort(Main.port)
-                            .addAllMembershipList(Main.membershipList).setCommand(Command.UPDATE).build());
+                            .addAllMembership(Main.membershipList).setCommand(Command.UPDATE).build());
                     break;
                 case DISPLAY:
                     Main.display();
@@ -91,7 +96,7 @@ public class Receiver {
                                     .setHostName(Main.hostName)
                                     .setTimestamp(Main.timestamp)
                                     .setPort(Main.port)
-                                    .addAllMembershipList(Main.membershipList).build()
+                                    .addAllMembership(Main.membershipList).build()
                     );
                     break;
                 default:

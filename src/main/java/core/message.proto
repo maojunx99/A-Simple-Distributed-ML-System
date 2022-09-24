@@ -9,7 +9,7 @@ message Message{
   int64 port = 2;
   string timestamp = 3;
   Command command = 4;
-  repeated core.Process membershipList = 5;
+  repeated core.Process membership = 5;
 }
 
 enum Command{

@@ -49,26 +49,26 @@ public interface MessageOrBuilder extends
   core.Command getCommand();
 
   /**
-   * <code>repeated .core.Process membershipList = 5;</code>
+   * <code>repeated .core.Process membership = 5;</code>
    */
   java.util.List<core.Process> 
-      getMembershipListList();
+      getMembershipList();
   /**
-   * <code>repeated .core.Process membershipList = 5;</code>
+   * <code>repeated .core.Process membership = 5;</code>
    */
-  core.Process getMembershipList(int index);
+  core.Process getMembership(int index);
   /**
-   * <code>repeated .core.Process membershipList = 5;</code>
+   * <code>repeated .core.Process membership = 5;</code>
    */
-  int getMembershipListCount();
+  int getMembershipCount();
   /**
-   * <code>repeated .core.Process membershipList = 5;</code>
+   * <code>repeated .core.Process membership = 5;</code>
    */
   java.util.List<? extends core.ProcessOrBuilder> 
-      getMembershipListOrBuilderList();
+      getMembershipOrBuilderList();
   /**
-   * <code>repeated .core.Process membershipList = 5;</code>
+   * <code>repeated .core.Process membership = 5;</code>
    */
-  core.ProcessOrBuilder getMembershipListOrBuilder(
+  core.ProcessOrBuilder getMembershipOrBuilder(
       int index);
 }
