@@ -49,8 +49,6 @@ public class Main {
     public static String timestamp;
 
     private Main() throws IOException {
-        Thread receiver = new Thread(new Receiver());
-        receiver.start();
         Properties properties = new Properties();
         properties.load(this.getClass().getResourceAsStream(propertiesPath));
         monitorRange = Integer.parseInt(properties.getProperty("monitor_range"));
@@ -67,6 +65,8 @@ public class Main {
                                 .setStatus(ProcessStatus.ALIVE)
                                 .build()
         );
+        Thread receiver = new Thread(new Receiver());
+        receiver.start();
     }
 
 
@@ -112,7 +112,8 @@ public class Main {
         System.out.println("-            membership list            -");
         System.out.println("-----------------------------------------");
         for (Process process : membershipList) {
-            System.out.println(process);
+            System.out.print(process);
+            System.out.println("status: " + process.getStatus());
         }
         System.out.println("-----------------------------------------");
     }
@@ -147,8 +148,14 @@ public class Main {
                         .build()
         );
         //call sender to inform others
+        int cnt = 0;
         while (membershipList.size() == 1) {
             Thread.sleep(1000);
+            cnt++;
+            if(cnt > 5){
+                System.out.println("[ERROR] the introducer is down!");
+                return;
+            }
         }
         Sender.send(
                 Message.newBuilder()

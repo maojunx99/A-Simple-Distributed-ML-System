@@ -25,6 +25,14 @@ public class MemberListUpdater {
         }
         if(commmand == Command.ACK){
             // TODO: 2022/9/23
+            for(int i = 0;i < Main.membershipList.size();i++){
+                // check whether process has already existed
+                Process p = Main.membershipList.get(i);
+                if(p.getAddress().equals(message.getHostName())){
+                    Main.membershipList.set(i, p.toBuilder().setTimestamp(message.getTimestamp()).build());
+                    break;
+                }
+            }
         }else if(commmand == Command.JOIN){
             Process process = Process.newBuilder()
                                     .setAddress(message.getHostName())
@@ -43,6 +51,10 @@ public class MemberListUpdater {
     synchronized public static void insert(Process process, List<Process> processList){
         int index = 0;
         for(Process p : processList){
+            // check whether process has already existed
+            if(p.getAddress().equals(process.getAddress())){
+                return;
+            }
             if(p.getAddress().compareTo(process.getAddress()) > 0){
                 processList.add(index, process);
                 return;

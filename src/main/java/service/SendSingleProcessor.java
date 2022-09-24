@@ -25,13 +25,11 @@ public class SendSingleProcessor extends Thread{
         } catch (SocketException e) {
             throw new RuntimeException(e);
         }
-        String address = message.getHostName();
-        long port = message.getPort();
         byte[] arr = message.toByteArray();
         try {
             DatagramPacket packet = null;
             packet = new DatagramPacket(arr, 0, arr.length,
-                    InetAddress.getByName(hostName), (int) port);
+                    InetAddress.getByName(hostName), port);
             datagramSocket.send(packet);
         }catch (IOException e){
             throw new RuntimeException(e);
