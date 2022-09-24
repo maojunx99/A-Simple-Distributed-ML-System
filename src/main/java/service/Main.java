@@ -1,14 +1,13 @@
 package service;
 
-import com.google.protobuf.Timestamp;
 import core.Command;
 import core.Message;
 import core.Process;
-import core.ProcessStatus;
 import grep.client.Client;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.*;
 
@@ -17,29 +16,37 @@ import java.util.*;
  */
 public class Main {
     // membership list
-    volatile static LinkedList<Process> membershipList = new LinkedList<>();
+    public volatile static List<Process> membershipList;
     // properties file path
     static String propertiesPath = "../setting.properties";
     // ack list
-    static boolean[] isAck;
-    static int monitorRange;
-    static String introducer;
-    static int port;
-    static int index;
-    private final String hostName;
-    private final String timestamp;
+    public static boolean[] isAck;
+    public static int monitorRange;
+    public static String introducer;
+    public static int port;
+    public static int index;
+    public static final String hostName;
+
+    static {
+        try {
+            hostName = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String timestamp;
 
     private Main() throws IOException {
+        membershipList = new ArrayList<>();
         Properties properties = new Properties();
         properties.load(this.getClass().getResourceAsStream(propertiesPath));
         monitorRange = Integer.parseInt(properties.getProperty("monitor_range"));
         isAck = new boolean[monitorRange];
         introducer = properties.getProperty("introducer");
         port = Integer.parseInt(properties.getProperty("port"));
-        InetAddress address = InetAddress.getLocalHost();
-        this.hostName = address.getHostName();
         Instant time = Instant.now();
-        this.timestamp = Timestamp.newBuilder().setSeconds(time.getEpochSecond()).build().getSeconds() + "";
+        timestamp = String.valueOf(time.getEpochSecond());
     }
 
 
@@ -77,7 +84,7 @@ public class Main {
         main.join();
     }
 
-    private void display() {
+    public static void display() {
         // inform other processes to print their membership list
         Sender.send(Message.newBuilder().setCommand(Command.DISPLAY).build());
         // display local membership list

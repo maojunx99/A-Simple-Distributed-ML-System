@@ -14,4 +14,7 @@ public class Sender {
         //TODO
         System.out.println("MESSAGE\n" + message + "has been sent to neighbors");
     }
+    static public void send(String hostName, int port, Message message){
+
+    }
 }
