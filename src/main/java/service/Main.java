@@ -68,6 +68,8 @@ public class Main {
         );
         Thread receiver = new Thread(new Receiver());
         receiver.start();
+        Thread monitor = new Thread(new Monitor());
+        monitor.start();
     }
 
 
