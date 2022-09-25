@@ -4,6 +4,7 @@ import core.Command;
 import core.Message;
 import core.Process;
 import core.ProcessStatus;
+import utils.LogGenerator;
 import utils.MemberListUpdater;
 import utils.NeighborFilter;
 
@@ -72,7 +73,16 @@ public class Receiver extends Thread {
                 case WELCOME:
                     // update membership list
                     Main.membershipList = new ArrayList<>();
-                    Main.membershipList.addAll(message.getMembershipList());
+                    for (Process process: message.getMembershipList()) {
+                        Main.membershipList.add(process);
+                        if(!process.getAddress().equals(Main.hostName)){
+                            try {
+                                LogGenerator.logging(LogGenerator.LogType.JOIN, process.getAddress(), process.getTimestamp(), ProcessStatus.ALIVE);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }
                     break;
                 case PING:
                     // response to ping with ack
