@@ -6,6 +6,7 @@ import core.Process;
 import core.ProcessStatus;
 import service.Main;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -14,34 +15,43 @@ import java.util.List;
  */
 public class MemberListUpdater {
     public static boolean update(Message message){
-        Command commmand = message.getCommand();
-        if(commmand == Command.ACK){
-            // TODO: 2022/9/23
+        Command command = message.getCommand();
+        if(command == Command.ACK){
             for(int i = 0;i < Main.membershipList.size();i++){
                 // check whether process has already existed
                 Process p = Main.membershipList.get(i);
                 if(p.getAddress().equals(message.getHostName())){
+                    try {
+                        LogGenerator.timestampLogging(p.getAddress(), p.getTimestamp(), message.getTimestamp());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                     Main.membershipList.set(i, p.toBuilder().setTimestamp(message.getTimestamp()).build());
                     break;
                 }
             }
             return true;
-        }else if(commmand == Command.JOIN){
+        }else if(command == Command.JOIN){
             Process process = Process.newBuilder()
                                     .setAddress(message.getHostName())
                                     .setTimestamp(message.getTimestamp())
                                     .setStatus(ProcessStatus.ALIVE)
                                     .setPort(message.getPort()).build();
             insert(process, Main.membershipList);
-            System.out.println(message.getHostName() + " joins the membershipList");
+            System.out.println("[INFO] " + message.getHostName() + "@" + message.getTimestamp() + " joins the membershipList");
+            try {
+                LogGenerator.logging(LogGenerator.LogType.JOIN, message.getHostName(), message.getTimestamp(), ProcessStatus.ALIVE);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             return false;
-        } else if (commmand == Command.LEAVE) {
+        } else if (command == Command.LEAVE) {
             boolean isModified = remove(message, Main.membershipList);
             if(!isModified){
                 System.out.println(message.getHostName() + "not exists");
             }
             return isModified;
-        } else if (commmand == Command.UPDATE){
+        } else if (command == Command.UPDATE){
             return updateMemberList(message, Main.membershipList);
         }
         return false;
@@ -71,6 +81,11 @@ public class MemberListUpdater {
             if(process.getAddress().equals(hostname)){
                 processList.set(i, process.toBuilder().setStatus(ProcessStatus.LEAVED)
                         .setTimestamp(timestamp).build());
+                try {
+                    LogGenerator.logging(LogGenerator.LogType.LEAVE, hostname, timestamp, ProcessStatus.LEAVED);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 return true;
             }
         }
@@ -101,8 +116,13 @@ public class MemberListUpdater {
             if(curAddress.compareToIgnoreCase(newAddress) > 0){
                 curMembershipList.add(curIndex, newProcess);
                 isModified = true;
-                System.out.println(newProcess.getAddress() + " is added into "
+                System.out.println("[INFO] " + newProcess.getAddress() + "@" + newProcess.getTimestamp() + " is added into "
                                 + Main.hostName + "'s membershipList");
+                try {
+                    LogGenerator.logging(LogGenerator.LogType.JOIN, newProcess.getAddress(), newProcess.getTimestamp(), ProcessStatus.ALIVE);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 newIndex ++;
             }else if(curAddress.compareToIgnoreCase(newAddress) < 0){
                 curIndex ++;
@@ -114,11 +134,32 @@ public class MemberListUpdater {
                     Process.Builder temp = curProcess.toBuilder().setTimestamp(newTimeStamp);
                     if(newProcess.getStatus()!=curProcess.getStatus()){
                         temp.setStatus(newProcess.getStatus());
+                        if(newProcess.getStatus() == ProcessStatus.CRASHED){
+                            try {
+                                LogGenerator.logging(LogGenerator.LogType.CRASH,
+                                        message.getHostName(), message.getTimestamp(),
+                                        temp.getAddress(), temp.getTimestamp()
+                                );
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                        try {
+                            LogGenerator.logging(LogGenerator.LogType.UPDATE, temp.getAddress(),
+                                    temp.getTimestamp(), temp.getStatus());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                         isModified = true;
                     }
                     curMembershipList.set(curIndex, temp.build());
-                    System.out.println(curProcess.getAddress() + "'s timestamp is updated in "
+                    System.out.println("[INFO] " + curProcess.getAddress() + "'s timestamp is updated in "
                     + Main.hostName + "'s membershipList");
+                    try {
+                        LogGenerator.timestampLogging(curProcess.getAddress(), curTimeStamp, newTimeStamp);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                 newIndex ++;
                 curIndex ++;
@@ -126,9 +167,15 @@ public class MemberListUpdater {
         }
         //add remaining processes in newMembershipList into curMembershipList
         while(newIndex < newLength){
-            curMembershipList.add(newMembershipList.get(newIndex));
-            System.out.println(newMembershipList.get(newIndex).getAddress() + " is added into "
+            Process process = newMembershipList.get(newIndex);
+            curMembershipList.add(process);
+            System.out.println("[INFO] " + process.getAddress() + "@" + process.getTimestamp() + " is added into "
                     + Main.hostName + "'s membershipList");
+            try {
+                LogGenerator.logging(LogGenerator.LogType.UPDATE, process.getAddress(), process.getTimestamp(), ProcessStatus.ALIVE);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             newIndex ++;
             isModified = true;
         }

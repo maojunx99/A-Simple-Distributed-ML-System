@@ -4,6 +4,7 @@ import core.Command;
 import core.Message;
 import core.Process;
 import core.ProcessStatus;
+import utils.LogGenerator;
 import utils.NeighborFilter;
 
 import java.io.IOException;
@@ -80,6 +81,14 @@ public class Monitor extends Thread{
                                         .setAddress(target.getAddress())
                                         .setPort(target.getPort()).build());
                             }
+                        }
+                        System.out.println("[CRASH] " + Main.hostName + "@" + Main.timestamp + " detected a crash on "
+                                + target.getAddress() + "@" + target.getTimestamp());
+                        try {
+                            LogGenerator.logging(LogGenerator.LogType.CRASH, Main.hostName, Main.timestamp,
+                                    target.getAddress(), target.getTimestamp());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
                         }
                     }
                 }

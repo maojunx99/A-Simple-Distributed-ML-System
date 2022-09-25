@@ -1,5 +1,8 @@
 package utils;
 
+import core.ProcessStatus;
+import service.Main;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -18,7 +21,7 @@ public class LogGenerator {
 
     static {
         try {
-            if (!file.exists()){
+            if (!file.exists()) {
                 file.createNewFile();
             }
             out = new FileOutputStream(file, true);
@@ -32,21 +35,31 @@ public class LogGenerator {
     public LogGenerator() throws IOException {
     }
 
-    public static void logging(LogType logType, String hostName, String timestamp) throws IOException {
-        String str = formatter.format(Instant.now()) + "["+ logType +"] " + hostName + "@" + timestamp + "\n";
+    public static void logging(LogType logType, String hostName, String timestamp, ProcessStatus status) throws IOException {
+        String str = formatter.format(Instant.now()) + "[" + logType + "] " + hostName + "@" + timestamp;
+        if(logType==LogType.UPDATE){
+            str += " to " + status;
+        }
+        str += "\n";
         out.write(str.getBytes(StandardCharsets.UTF_8));
     }
+
     public static void logging(LogType logType, String informHost, String informTimestamp, String hostName, String timestamp) throws IOException {
-        String str = formatter.format(Instant.now()) + "["+ logType +"] " + hostName + "@" + timestamp + " from " + informHost + "@" + timestamp+ "\n";
+        String str = formatter.format(Instant.now()) + "[" + logType + "] " + informHost + "@" + informTimestamp
+                + " detected a crash on " + hostName + "@" + timestamp;
         out.write(str.getBytes(StandardCharsets.UTF_8));
-        out.close();
     }
-    public enum LogType{
+
+    public static void timestampLogging(String hostName, String oldTimestamp, String newTimestamp) throws IOException {
+        String str = formatter.format(Instant.now()) + "[" + LogType.UPDATE + "] " + hostName + "@" + oldTimestamp
+                + " is updated to " + hostName + "@" + newTimestamp + "\n";
+        out.write(str.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public enum LogType {
         JOIN,
         LEAVE,
         CRASH,
-        UPDATE,
-        FAILURE_INFORM,
-        FAILURE_ACK
+        UPDATE
     }
 }
