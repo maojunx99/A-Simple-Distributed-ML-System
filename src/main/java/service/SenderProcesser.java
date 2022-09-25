@@ -15,7 +15,7 @@ public class SenderProcesser extends Thread{
     private Message message;
     private boolean onlyNeighbors;
 
-    public SenderProcesser(Message message, boolean onlyNeighbors) {
+    public  SenderProcesser(Message message, boolean onlyNeighbors) {
         this.message = message;
         this.onlyNeighbors = onlyNeighbors;
     }

@@ -62,6 +62,14 @@ public class Receiver extends Thread {
 
         @Override
         public void run() {
+            // if this process has left the group, then ignore all packages
+            for (Process process: Main.membershipList) {
+                if(process.getAddress().equals(Main.hostName)&&process.getStatus()==ProcessStatus.LEAVED){
+                    return;
+                }else{
+                    break;
+                }
+            }
             if(this.message.getCommand() != Command.PING && this.message.getCommand() != Command.ACK){
                 System.out.println("[MESSAGE] get " + this.message.getCommand() + " command from "
                         + this.message.getHostName() + "@" + this.message.getTimestamp());
