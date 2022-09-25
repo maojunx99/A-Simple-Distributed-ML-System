@@ -70,6 +70,17 @@ public class Monitor extends Thread{
                 boolean hasCrash = false;
                 for(int k = 0; k < neighbors.size(); k ++){
                     if(!isAck[k]){
+                        Process neighbor = neighbors.get(k);
+                        boolean _continue = false;
+                        for (Process process: Main.membershipList) {
+                            if(process.getAddress().equals(neighbor.getAddress())){
+                                if(process.getStatus()!=ProcessStatus.ALIVE){
+                                    _continue = true;
+                                }
+                                break;
+                            }
+                        }
+                        if(_continue)continue;
                         hasCrash = true;
                         Process target = neighbors.get(k);
                         int length = Main.membershipList.size();
