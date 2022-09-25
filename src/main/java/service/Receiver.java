@@ -70,9 +70,7 @@ public class Receiver extends Thread {
                 case WELCOME:
                     // update membership list
                     Main.membershipList = new ArrayList<>();
-                    for(Process process : message.getMembershipList()){
-                        Main.membershipList.add(process);
-                    }
+                    Main.membershipList.addAll(message.getMembershipList());
                     break;
                 case PING:
                     // response to ping with ack

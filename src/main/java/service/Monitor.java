@@ -65,8 +65,10 @@ public class Monitor extends Thread{
                     throw new RuntimeException(e);
                 }
                 //check whether receive "ACK" from each neighbors
+                boolean hasCrash = false;
                 for(int k = 0; k < neighbors.size(); k ++){
                     if(!isAck[k]){
+                        hasCrash = true;
                         Process target = neighbors.get(k);
                         int length = Main.membershipList.size();
                         for(int i = 0; i < length; i++){
@@ -80,10 +82,12 @@ public class Monitor extends Thread{
                         }
                     }
                 }
-                //send update message to 4 neighbors
-                Message message = Message.newBuilder().setCommand(Command.UPDATE).setHostName(Main.hostName)
-                        .setPort(Main.port).setTimestamp(Main.timestamp).addAllMembership(Main.membershipList).build();
-                Sender.send(message);
+                if(hasCrash){
+                    //send update message to 4 neighbors
+                    Message message = Message.newBuilder().setCommand(Command.UPDATE).setHostName(Main.hostName)
+                            .setPort(Main.port).setTimestamp(Main.timestamp).addAllMembership(Main.membershipList).build();
+                    Sender.send(message);
+                }
             }
         }
     }

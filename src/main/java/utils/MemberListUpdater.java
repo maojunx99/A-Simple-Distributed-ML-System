@@ -1,15 +1,11 @@
 package utils;
 
-import com.google.protobuf.Timestamp;
 import core.Command;
 import core.Message;
 import core.Process;
 import core.ProcessStatus;
 import service.Main;
-import service.Sender;
 
-import java.io.StringReader;
-import java.time.Instant;
 import java.util.List;
 
 /**
@@ -38,7 +34,7 @@ public class MemberListUpdater {
                                     .setPort(message.getPort()).build();
             insert(process, Main.membershipList);
             System.out.println(message.getHostName() + " joins the membershipList");
-            return true;
+            return false;
         } else if (commmand == Command.LEAVE) {
             boolean isModified = remove(message, Main.membershipList);
             if(!isModified){
