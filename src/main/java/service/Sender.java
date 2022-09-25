@@ -20,8 +20,8 @@ public class Sender {
     public static ThreadPoolExecutor senderThreadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 0L,
             TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 
-    public static void send(Message message) {
-        senderThreadPool.execute(new SenderProcesser(message));
+    public static void send(Message message, boolean onlyNeighbors) {
+        senderThreadPool.execute(new SenderProcesser(message, onlyNeighbors));
     }
     public static void send(String hostname, int port, Message message){
         senderThreadPool.execute(new SendSingleProcessor(hostname, port, message));

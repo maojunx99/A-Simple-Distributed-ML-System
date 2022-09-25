@@ -109,7 +109,13 @@ public class Main {
     }
     public static void listMem(){
         // inform other processes to print their membership list
-        Sender.send(Message.newBuilder().setHostName(hostName).setTimestamp(timestamp).setCommand(Command.DISPLAY).build());
+        Sender.send(Message.newBuilder()
+                .setHostName(hostName)
+                .setTimestamp(timestamp)
+                .setCommand(Command.DISPLAY)
+                .build(),
+                false
+        );
         display();
     }
 
@@ -144,7 +150,8 @@ public class Main {
                         .setPort(port)
                         .setTimestamp(timestamp)
                         .setCommand(Command.LEAVE)
-                        .build()
+                        .build(),
+                true
         );
         System.out.println("[INFO] Left the group!");
     }
@@ -179,7 +186,8 @@ public class Main {
                         .setCommand(Command.UPDATE)
                         .addAllMembership(membershipList)
                         .setTimestamp(timestamp)
-                        .build()
+                        .build(),
+                true
         );
         System.out.println("[INFO] Joined into the group!");
     }

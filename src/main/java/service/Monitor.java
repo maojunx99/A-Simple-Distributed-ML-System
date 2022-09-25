@@ -87,7 +87,7 @@ public class Monitor extends Thread{
                     //send update message to 4 neighbors
                     Message message = Message.newBuilder().setCommand(Command.UPDATE).setHostName(Main.hostName)
                             .setPort(Main.port).setTimestamp(Main.timestamp).addAllMembership(Main.membershipList).build();
-                    Sender.send(message);
+                    Sender.send(message, true);
                 }
             }
         }

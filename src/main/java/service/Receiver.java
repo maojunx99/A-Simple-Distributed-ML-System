@@ -97,7 +97,8 @@ public class Receiver extends Thread {
                                         .setCommand(Command.UPDATE)
                                         .setTimestamp(Main.timestamp)
                                         .addAllMembership(Main.membershipList)
-                                        .build()
+                                        .build(),
+                                        true
                                 );
                             }
                             break;
@@ -118,7 +119,7 @@ public class Receiver extends Thread {
                     // update membershipList according to message's membership list
                     if(MemberListUpdater.update(message)){
                         Sender.send(Message.newBuilder().setHostName(Main.hostName).setTimestamp(Main.timestamp).setPort(Main.port)
-                            .addAllMembership(Main.membershipList).setCommand(Command.UPDATE).build());
+                            .addAllMembership(Main.membershipList).setCommand(Command.UPDATE).build(), true);
                     }
                     break;
                 case DISPLAY:

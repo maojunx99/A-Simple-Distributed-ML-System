@@ -13,9 +13,11 @@ import java.util.ArrayList;
 
 public class SenderProcesser extends Thread{
     private Message message;
+    private boolean onlyNeighbors;
 
-    public SenderProcesser(Message message) {
+    public SenderProcesser(Message message, boolean onlyNeighbors) {
         this.message = message;
+        this.onlyNeighbors = onlyNeighbors;
     }
     @Override
     public void run() {
@@ -27,14 +29,24 @@ public class SenderProcesser extends Thread{
             throw new RuntimeException(e);
         }
         byte[] arr = message.toByteArray();
-        List<Process> processList = NeighborFilter.getNeighbors();
+        List<Process> processList = onlyNeighbors ? NeighborFilter.getNeighbors() : Main.membershipList;
         try {
-            for(Process process : processList){
-                String address = process.getAddress();
-                long port = process.getPort();
-                DatagramPacket packet = new DatagramPacket(arr, 0, arr.length,
-                        InetAddress.getByName(process.getAddress()), (int) port);
-                datagramSocket.send(packet);
+            if(onlyNeighbors){
+                for(Process process : processList){
+                    long port = process.getPort();
+                    DatagramPacket packet = new DatagramPacket(arr, 0, arr.length,
+                            InetAddress.getByName(process.getAddress()), (int) port);
+                    datagramSocket.send(packet);
+                }
+            }else{
+                for(Process process : processList){
+                    if(!process.getAddress().equals(Main.hostName)){
+                        long port = process.getPort();
+                        DatagramPacket packet = new DatagramPacket(arr, 0, arr.length,
+                                InetAddress.getByName(process.getAddress()), (int) port);
+                        datagramSocket.send(packet);
+                    }
+                }
             }
         }catch (IOException e){
             throw new RuntimeException(e);
