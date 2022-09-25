@@ -77,6 +77,15 @@ public class Receiver extends Thread {
             switch (this.message.getCommand()) {
                 case LEAVE:
                     MemberListUpdater.update(message);
+                    Sender.send(Message.newBuilder()
+                                    .setHostName(Main.hostName)
+                                    .setPort(Main.port)
+                                    .setTimestamp(Main.timestamp)
+                                    .addAllMembership(Main.membershipList)
+                                    .setCommand(Command.UPDATE)
+                                    .build(),
+                            true
+                    );
                     break;
                 case WELCOME:
                     // update membership list
