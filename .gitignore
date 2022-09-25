@@ -2,3 +2,5 @@ logging.log
 *.class
 *.iml
 .idea/
+target/
+*.DS_Store

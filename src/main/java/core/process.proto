@@ -1,0 +1,17 @@
+syntax = "proto3";
+package core;
+
+option java_multiple_files = true;
+
+enum ProcessStatus{
+  DEFAULT = 0;
+  ALIVE = 1;
+  LEAVED = 2;
+  CRASHED = 3;
+}
+message Process{
+  string timestamp = 1;
+  string address = 2;
+  int64 port = 3;
+  ProcessStatus status = 4;
+}
