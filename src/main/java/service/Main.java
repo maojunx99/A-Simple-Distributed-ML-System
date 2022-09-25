@@ -20,7 +20,7 @@ import java.util.*;
  */
 public class Main {
     // membership list
-    public static List<Process> membershipList = null;
+    public volatile static List<Process> membershipList = null;
     // properties file path
     static String propertiesPath = "../setting.properties";
     // ack list
