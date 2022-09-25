@@ -52,7 +52,7 @@ public class MemberListUpdater {
             }
             return isModified;
         } else if (command == Command.UPDATE){
-            return updateMemberList(message, Main.membershipList);
+            return updateMemberList(message);
         }
         return false;
     }
@@ -101,29 +101,22 @@ public class MemberListUpdater {
 //                .setTimestamp(String.valueOf(Instant.now().getEpochSecond())).build());
 //    }
 
-    synchronized public static boolean updateMemberList(Message message, List<Process> curMembershipList){
+    synchronized public static boolean updateMemberList(Message message){
         List<Process> newMembershipList = message.getMembershipList();
         //curMembershipList : membershipList on current node
         //newMembershipList : membershipList on input message
         int newLength = newMembershipList.size();
         int curIndex = 0, newIndex = 0;
         boolean isModified = false;
-        while(curIndex < curMembershipList.size() && newIndex < newLength) {
-            Process curProcess = curMembershipList.get(curIndex);
+        while(curIndex < Main.membershipList.size() && newIndex < newLength) {
+            Process curProcess = Main.membershipList.get(curIndex);
             Process newProcess = newMembershipList.get(newIndex);
             String curAddress = curProcess.getAddress();
             String newAddress = newProcess.getAddress();
             if(curAddress.compareToIgnoreCase(newAddress) > 0){
-                curMembershipList.add(curIndex, newProcess);
+                Main.membershipList.add(curIndex, newProcess);
                 isModified = true;
-                System.out.println("[INFO] " + newProcess.getAddress() + "@" + newProcess.getTimestamp() + " is added into "
-                                + Main.hostName + "'s membershipList");
-                try {
-                    LogGenerator.logging(LogGenerator.LogType.JOIN, newProcess.getAddress(), newProcess.getTimestamp(), ProcessStatus.ALIVE);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                newIndex ++;
+                newIndex = displayJoin(newIndex, newProcess);
             }else if(curAddress.compareToIgnoreCase(newAddress) < 0){
                 curIndex ++;
             }else {
@@ -152,7 +145,7 @@ public class MemberListUpdater {
                         }
                         isModified = true;
                     }
-                    curMembershipList.set(curIndex, temp.build());
+                    Main.membershipList.set(curIndex, temp.build());
                     System.out.println("[INFO] " + curProcess.getAddress() + "'s timestamp is updated in "
                     + Main.hostName + "'s membershipList");
                     try {
@@ -168,17 +161,22 @@ public class MemberListUpdater {
         //add remaining processes in newMembershipList into curMembershipList
         while(newIndex < newLength){
             Process process = newMembershipList.get(newIndex);
-            curMembershipList.add(process);
-            System.out.println("[INFO] " + process.getAddress() + "@" + process.getTimestamp() + " is added into "
-                    + Main.hostName + "'s membershipList");
-            try {
-                LogGenerator.logging(LogGenerator.LogType.UPDATE, process.getAddress(), process.getTimestamp(), ProcessStatus.ALIVE);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            newIndex ++;
+            Main.membershipList.add(process);
+            newIndex = displayJoin(newIndex, process);
             isModified = true;
         }
         return isModified;
+    }
+
+    private static int displayJoin(int newIndex, Process process) {
+        System.out.println("[INFO] " + process.getAddress() + "@" + process.getTimestamp() + " is added into "
+                + Main.hostName + "'s membershipList");
+        try {
+            LogGenerator.logging(LogGenerator.LogType.JOIN, process.getAddress(), process.getTimestamp(), ProcessStatus.ALIVE);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        newIndex ++;
+        return newIndex;
     }
 }
