@@ -21,12 +21,14 @@ public class MemberListUpdater {
                 // check whether process has already existed
                 Process p = Main.membershipList.get(i);
                 if(p.getAddress().equals(message.getHostName())){
-                    try {
-                        LogGenerator.timestampLogging(p.getAddress(), p.getTimestamp(), message.getTimestamp());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                    if(p.getStatus() == ProcessStatus.ALIVE){
+                        try {
+                            LogGenerator.timestampLogging(p.getAddress(), p.getTimestamp(), message.getTimestamp());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        Main.membershipList.set(i, p.toBuilder().setTimestamp(message.getTimestamp()).build());
                     }
-                    Main.membershipList.set(i, p.toBuilder().setTimestamp(message.getTimestamp()).build());
                     break;
                 }
             }
@@ -37,7 +39,7 @@ public class MemberListUpdater {
                                     .setTimestamp(message.getTimestamp())
                                     .setStatus(ProcessStatus.ALIVE)
                                     .setPort(message.getPort()).build();
-            insert(process, Main.membershipList);
+            insert(process);
             System.out.println("[INFO] " + message.getHostName() + "@" + message.getTimestamp() + " joins the membershipList");
             try {
                 LogGenerator.logging(LogGenerator.LogType.JOIN, message.getHostName(), message.getTimestamp(), ProcessStatus.ALIVE);
@@ -46,7 +48,7 @@ public class MemberListUpdater {
             }
             return false;
         } else if (command == Command.LEAVE) {
-            boolean isModified = remove(message, Main.membershipList);
+            boolean isModified = remove(message);
             if(!isModified){
                 System.out.println(message.getHostName() + "not exists");
             }
@@ -56,30 +58,30 @@ public class MemberListUpdater {
         }
         return false;
     }
-    synchronized public static void insert(Process process, List<Process> processList){
+    synchronized public static void insert(Process process){
         int index = 0;
-        for(Process p : processList){
+        for(Process p : Main.membershipList){
             // check whether process has already existed
             if(p.getAddress().equals(process.getAddress())){
-                processList.set(index, process.toBuilder().setTimestamp(process.getTimestamp()).setStatus(process.getStatus()).build());
+                Main.membershipList.set(index, process.toBuilder().setTimestamp(process.getTimestamp()).setStatus(process.getStatus()).build());
                 return;
             }
             if(p.getAddress().compareTo(process.getAddress()) > 0){
-                processList.add(index, process);
+                Main.membershipList.add(index, process);
                 return;
             }
             index ++;
         }
-        processList.add(process);
+        Main.membershipList.add(process);
     }
 
-    synchronized public static boolean remove(Message message, List<Process> processList){
+    synchronized public static boolean remove(Message message){
         String hostname = message.getHostName();
         String timestamp = message.getTimestamp();
-        for(int i = 0; i < processList.size(); i++){
-            Process process = processList.get(i);
+        for(int i = 0; i < Main.membershipList.size(); i++){
+            Process process = Main.membershipList.get(i);
             if(process.getAddress().equals(hostname)){
-                processList.set(i, process.toBuilder().setStatus(ProcessStatus.LEAVED)
+                Main.membershipList.set(i, process.toBuilder().setStatus(ProcessStatus.LEAVED)
                         .setTimestamp(timestamp).build());
                 try {
                     LogGenerator.logging(LogGenerator.LogType.LEAVE, hostname, timestamp, ProcessStatus.LEAVED);
