@@ -115,12 +115,14 @@ public class MemberListUpdater {
                 String curTimeStamp = curProcess.getTimestamp();
                 String newTimeStamp = newProcess.getTimestamp();
                 if(curTimeStamp.compareToIgnoreCase(newTimeStamp) < 0){
-                    curMembershipList.set(curIndex, curProcess.toBuilder()
-                                     .setStatus(newProcess.getStatus())
-                                     .setTimestamp(newTimeStamp).build());
+                    Process.Builder temp = curProcess.toBuilder().setTimestamp(newTimeStamp);
+                    if(newProcess.getStatus()!=curProcess.getStatus()){
+                        temp.setStatus(newProcess.getStatus());
+                        isModified = true;
+                    }
+                    curMembershipList.set(curIndex, temp.build());
                     System.out.println(curProcess.getAddress() + "'s timestamp is updated in "
                     + Main.hostName + "'s membershipList");
-                    isModified = true;
                 }
                 newIndex ++;
                 curIndex ++;
