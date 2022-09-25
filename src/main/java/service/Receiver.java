@@ -60,7 +60,9 @@ public class Receiver extends Thread {
 
         @Override
         public void run() {
-            System.out.println("[MESSAGE] get " + this.message.getCommand() + " command from "+ this.message.getHostName());
+            if(this.message.getCommand()!=Command.PING&&this.message.getCommand()!=Command.ACK){
+                System.out.println("[MESSAGE] get " + this.message.getCommand() + " command from "+ this.message.getHostName());
+            }
             switch (this.message.getCommand()) {
                 case LEAVE:
                     MemberListUpdater.update(message);
