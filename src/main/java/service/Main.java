@@ -28,7 +28,7 @@ public class Main {
     public static int monitorRange;
     public static String introducer;
     public static int port;
-    public static int index;
+    public static int timeBeforeCrash;
     public static final String hostName;
     private static final Receiver receiver;
     static{
@@ -56,6 +56,7 @@ public class Main {
         isAck = new boolean[monitorRange * 2];
         introducer = properties.getProperty("introducer");
         port = Integer.parseInt(properties.getProperty("port"));
+        timeBeforeCrash = Integer.parseInt(properties.getProperty("time_before_crash"));
         Instant time = Instant.now();
         timestamp = String.valueOf(time.getEpochSecond());
         membershipList = new ArrayList<>();
@@ -119,7 +120,6 @@ public class Main {
         System.out.print("-----------------------------------------");
         for (Process process : membershipList) {
             System.out.print("\n" + process);
-            System.out.println("status: " + process.getStatus());
         }
         System.out.println("-----------------------------------------");
     }

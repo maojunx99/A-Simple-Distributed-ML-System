@@ -9,32 +9,40 @@ package core;
 public enum ProcessStatus
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>ALIVE = 0;</code>
+   * <code>DEFAULT = 0;</code>
    */
-  ALIVE(0),
+  DEFAULT(0),
   /**
-   * <code>LEAVED = 1;</code>
+   * <code>ALIVE = 1;</code>
    */
-  LEAVED(1),
+  ALIVE(1),
   /**
-   * <code>CRASHED = 2;</code>
+   * <code>LEAVED = 2;</code>
    */
-  CRASHED(2),
+  LEAVED(2),
+  /**
+   * <code>CRASHED = 3;</code>
+   */
+  CRASHED(3),
   UNRECOGNIZED(-1),
   ;
 
   /**
-   * <code>ALIVE = 0;</code>
+   * <code>DEFAULT = 0;</code>
    */
-  public static final int ALIVE_VALUE = 0;
+  public static final int DEFAULT_VALUE = 0;
   /**
-   * <code>LEAVED = 1;</code>
+   * <code>ALIVE = 1;</code>
    */
-  public static final int LEAVED_VALUE = 1;
+  public static final int ALIVE_VALUE = 1;
   /**
-   * <code>CRASHED = 2;</code>
+   * <code>LEAVED = 2;</code>
    */
-  public static final int CRASHED_VALUE = 2;
+  public static final int LEAVED_VALUE = 2;
+  /**
+   * <code>CRASHED = 3;</code>
+   */
+  public static final int CRASHED_VALUE = 3;
 
 
   public final int getNumber() {
@@ -61,9 +69,10 @@ public enum ProcessStatus
    */
   public static ProcessStatus forNumber(int value) {
     switch (value) {
-      case 0: return ALIVE;
-      case 1: return LEAVED;
-      case 2: return CRASHED;
+      case 0: return DEFAULT;
+      case 1: return ALIVE;
+      case 2: return LEAVED;
+      case 3: return CRASHED;
       default: return null;
     }
   }

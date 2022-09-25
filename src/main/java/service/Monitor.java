@@ -60,7 +60,7 @@ public class Monitor extends Thread{
                 }
                 try {
                     //wait for 1s
-                    Thread.sleep(1000);
+                    Thread.sleep(Main.timeBeforeCrash);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }

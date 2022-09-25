@@ -3,6 +3,7 @@ package service;
 import core.Command;
 import core.Message;
 import core.Process;
+import core.ProcessStatus;
 import utils.MemberListUpdater;
 import utils.NeighborFilter;
 
@@ -19,9 +20,8 @@ import java.util.concurrent.TimeUnit;
  * multi-threads receive messages from other processes
  */
 public class Receiver extends Thread {
-    private DatagramSocket datagramSocket;
+    private final DatagramSocket datagramSocket;
     private static final int corePoolSize = 10;
-    private static int maximumPoolSize = Integer.MAX_VALUE / 2;
     ThreadPoolExecutor threadPoolExecutor;
 
     public Receiver() throws SocketException {
@@ -30,6 +30,7 @@ public class Receiver extends Thread {
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
+        int maximumPoolSize = Integer.MAX_VALUE / 2;
         threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 0L,
                 TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
@@ -85,6 +86,23 @@ public class Receiver extends Thread {
                                     .setCommand(Command.ACK)
                                     .build()
                     );
+                    for(int i = 0; i < Main.membershipList.size(); i++){
+                        Process process = Main.membershipList.get(i);
+                        if(process.getAddress().equals(message.getHostName())){
+                            if(process.getStatus()!= ProcessStatus.ALIVE){
+                                Main.membershipList.set(i, process.toBuilder().setStatus(ProcessStatus.ALIVE).setTimestamp(message.getTimestamp()).build());
+                                Sender.send(Message.newBuilder().
+                                        setHostName(Main.hostName)
+                                        .setPort(Main.port)
+                                        .setCommand(Command.UPDATE)
+                                        .setTimestamp(Main.timestamp)
+                                        .addAllMembership(Main.membershipList)
+                                        .build()
+                                );
+                            }
+                            break;
+                        }
+                    }
                     break;
                 case ACK:
                     // modify isAck

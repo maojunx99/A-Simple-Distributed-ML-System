@@ -31,8 +31,9 @@ public final class ProcessOuterClass {
       "\n\022core/process.proto\022\004core\"`\n\007Process\022\021\n" +
       "\ttimestamp\030\001 \001(\t\022\017\n\007address\030\002 \001(\t\022\014\n\004por" +
       "t\030\003 \001(\003\022#\n\006status\030\004 \001(\0162\023.core.ProcessSt" +
-      "atus*3\n\rProcessStatus\022\t\n\005ALIVE\020\000\022\n\n\006LEAV" +
-      "ED\020\001\022\013\n\007CRASHED\020\002B\002P\001b\006proto3"
+      "atus*@\n\rProcessStatus\022\013\n\007DEFAULT\020\000\022\t\n\005AL" +
+      "IVE\020\001\022\n\n\006LEAVED\020\002\022\013\n\007CRASHED\020\003B\002P\001b\006prot" +
+      "o3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

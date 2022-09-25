@@ -235,7 +235,7 @@ private static final long serialVersionUID = 0L;
     if (port_ != 0L) {
       output.writeInt64(3, port_);
     }
-    if (status_ != core.ProcessStatus.ALIVE.getNumber()) {
+    if (status_ != core.ProcessStatus.DEFAULT.getNumber()) {
       output.writeEnum(4, status_);
     }
     unknownFields.writeTo(output);
@@ -257,7 +257,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(3, port_);
     }
-    if (status_ != core.ProcessStatus.ALIVE.getNumber()) {
+    if (status_ != core.ProcessStatus.DEFAULT.getNumber()) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(4, status_);
     }

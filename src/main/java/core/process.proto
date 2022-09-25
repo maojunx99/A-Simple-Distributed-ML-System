@@ -4,9 +4,10 @@ package core;
 option java_multiple_files = true;
 
 enum ProcessStatus{
-  ALIVE = 0;
-  LEAVED = 1;
-  CRASHED = 2;
+  DEFAULT = 0;
+  ALIVE = 1;
+  LEAVED = 2;
+  CRASHED = 3;
 }
 message Process{
   string timestamp = 1;
