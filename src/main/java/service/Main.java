@@ -95,7 +95,7 @@ public class Main {
                 case "list_self":
                     main.print();
                     break;
-                case "grep":
+                case "grep -c": case "grep -Ec": case "grep":
                     System.out.println("please input grep content");
                     String query = scanner.nextLine();
                     try {

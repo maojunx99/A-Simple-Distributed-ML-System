@@ -14,6 +14,7 @@ public class Client {
     private static final String SERVER_ADDRESS = "server";
     private static final String PORT = "port";
     public static final String GREP_C = "grep -c";
+    public static final String GREP_EC = "grep -Ec";
 
 // don't need in mp2
 //    public static void main(String[] args) {
@@ -54,7 +55,7 @@ public class Client {
         // create thread pool
         final ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 15, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         // initialize result container
-        Result result = new Result(ResultType.Integer);
+        Result result = new Result(command.equals(GREP_C) || command.equals(GREP_EC) ? ResultType.Integer : ResultType.String);
 
         // get all grep.server amount from properties file
         Properties properties = new Properties();
