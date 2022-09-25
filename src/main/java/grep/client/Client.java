@@ -15,6 +15,7 @@ public class Client {
     private static final String PORT = "port";
     public static final String GREP_C = "grep -c";
     public static final String GREP_EC = "grep -Ec";
+    public static final String LOG_ADDRESS = "logging.log";
 
 // don't need in mp2
 //    public static void main(String[] args) {
@@ -51,7 +52,9 @@ public class Client {
      * @throws IOException - no such properties file
      */
     public static String callServers(String command, String query) throws IOException, InterruptedException {
-        System.out.println("start executing command: " + command + " " + query);
+//        System.out.println("start executing command: " + command + " " + query);
+        query = query.replace("\n", "");
+        query += " " + LOG_ADDRESS;
         // create thread pool
         final ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 15, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         // initialize result container
