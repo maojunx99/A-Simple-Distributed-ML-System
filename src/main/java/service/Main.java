@@ -5,6 +5,7 @@ import core.Message;
 import core.Process;
 import core.ProcessStatus;
 import grep.client.Client;
+import grep.server.Server;
 import utils.LogGenerator;
 import utils.MemberListUpdater;
 
@@ -71,6 +72,8 @@ public class Main {
         receiver.start();
         Thread monitor = new Thread(new Monitor());
         monitor.start();
+        Thread server = new Thread(new Server());
+        server.start();
     }
 
 
