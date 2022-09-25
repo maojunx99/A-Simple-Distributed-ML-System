@@ -33,6 +33,7 @@ public class Monitor extends Thread{
                 }
                 // ping 4 neighbors every 1 s
                 List<Process> neighbors = NeighborFilter.getNeighbors();
+                Main.timestamp = Instant.now().getEpochSecond() + "";
                 for(Process process : neighbors){
                     Message message = Message.newBuilder().setHostName(Main.hostName)
                                         .setPort(Main.port)
