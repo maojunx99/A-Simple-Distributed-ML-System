@@ -17,7 +17,6 @@ import java.util.List;
  * used by monitor and receiver
  */
 public class MemberListUpdater {
-    static List<Process> membershipList = Main.membershipList;
     public static boolean update(Message message){
         Command commmand = message.getCommand();
         if(commmand == Command.ACK){
@@ -35,12 +34,13 @@ public class MemberListUpdater {
             Process process = Process.newBuilder()
                                     .setAddress(message.getHostName())
                                     .setTimestamp(message.getTimestamp())
+                                    .setStatus(ProcessStatus.ALIVE)
                                     .setPort(message.getPort()).build();
-            insert(process, membershipList);
+            insert(process, Main.membershipList);
             System.out.println(message.getHostName() + " joins the membershipList");
             return true;
         } else if (commmand == Command.LEAVE) {
-            boolean isModified = remove(message, membershipList);
+            boolean isModified = remove(message, Main.membershipList);
             if(!isModified){
                 System.out.println(message.getHostName() + "not exists");
             }
@@ -55,6 +55,7 @@ public class MemberListUpdater {
         for(Process p : processList){
             // check whether process has already existed
             if(p.getAddress().equals(process.getAddress())){
+                processList.set(index, process.toBuilder().setTimestamp(process.getTimestamp()).setStatus(process.getStatus()).build());
                 return;
             }
             if(p.getAddress().compareTo(process.getAddress()) > 0){
@@ -93,11 +94,10 @@ public class MemberListUpdater {
         List<Process> newMembershipList = message.getMembershipList();
         //curMembershipList : membershipList on current node
         //newMembershipList : membershipList on input message
-        int curLength = curMembershipList.size();
         int newLength = newMembershipList.size();
         int curIndex = 0, newIndex = 0;
         boolean isModified = false;
-        while(curIndex < curLength && newIndex < newLength) {
+        while(curIndex < curMembershipList.size() && newIndex < newLength) {
             Process curProcess = curMembershipList.get(curIndex);
             Process newProcess = newMembershipList.get(newIndex);
             String curAddress = curProcess.getAddress();

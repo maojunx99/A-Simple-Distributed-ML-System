@@ -53,7 +53,7 @@ public class Main {
         Properties properties = new Properties();
         properties.load(this.getClass().getResourceAsStream(propertiesPath));
         monitorRange = Integer.parseInt(properties.getProperty("monitor_range"));
-        isAck = new boolean[monitorRange];
+        isAck = new boolean[monitorRange * 2];
         introducer = properties.getProperty("introducer");
         port = Integer.parseInt(properties.getProperty("port"));
         Instant time = Instant.now();
@@ -68,6 +68,8 @@ public class Main {
         );
         Thread receiver = new Thread(new Receiver());
         receiver.start();
+        Thread monitor = new Thread(new Monitor());
+        monitor.start();
     }
 
 
@@ -106,7 +108,7 @@ public class Main {
     }
     public static void listMem(){
         // inform other processes to print their membership list
-        Sender.send(Message.newBuilder().setCommand(Command.DISPLAY).build());
+        Sender.send(Message.newBuilder().setHostName(hostName).setTimestamp(timestamp).setCommand(Command.DISPLAY).build());
         display();
     }
 
@@ -128,6 +130,14 @@ public class Main {
 
     private void leave() {
         //call sender to inform others
+        for(int i = 0; i < Main.membershipList.size(); i++){
+            Process process = Main.membershipList.get(i);
+            if(process.getAddress().equals(hostName)){
+                timestamp = Instant.now().getEpochSecond()+"";
+                Main.membershipList.set(i, process.toBuilder().setStatus(ProcessStatus.LEAVED).setTimestamp(timestamp).build());
+                break;
+            }
+        }
         Sender.send(
                 Message.newBuilder()
                         .setHostName(hostName)
@@ -136,18 +146,12 @@ public class Main {
                         .setCommand(Command.LEAVE)
                         .build()
         );
-        for(int i = 0; i < Main.membershipList.size(); i++){
-            Process process = Main.membershipList.get(i);
-            if(process.getAddress().equals(hostName)){
-                Main.membershipList.set(i, process.toBuilder().setStatus(ProcessStatus.LEAVED).build());
-                break;
-            }
-        }
         System.out.println("[INFO] Left the group!");
     }
 
     private void join() throws InterruptedException {
         //call introducer to get list
+        timestamp = Instant.now().getEpochSecond() + "";
         Sender.send(
                 introducer,
                 port,
@@ -173,6 +177,7 @@ public class Main {
                         .setHostName(hostName)
                         .setPort(port)
                         .setCommand(Command.UPDATE)
+                        .addAllMembership(membershipList)
                         .setTimestamp(timestamp)
                         .build()
         );

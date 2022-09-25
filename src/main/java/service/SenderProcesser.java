@@ -2,11 +2,14 @@ package service;
 
 import core.Message;
 import core.Process;
+import core.ProcessStatus;
+import core.Command;
 import utils.NeighborFilter;
 
 import java.io.IOException;
 import java.net.*;
 import java.util.List;
+import java.util.ArrayList;
 
 public class SenderProcesser extends Thread{
     private Message message;
@@ -35,6 +38,10 @@ public class SenderProcesser extends Thread{
             }
         }catch (IOException e){
             throw new RuntimeException(e);
+        }
+        if(message.getCommand() == Command.LEAVE){
+            Main.membershipList = new ArrayList<>();
+            Main.membershipList.add(Process.newBuilder().setAddress(Main.hostName).setPort(Main.port).setTimestamp(Main.timestamp).setStatus(ProcessStatus.LEAVED).build()); 
         }
         datagramSocket.close();
     }

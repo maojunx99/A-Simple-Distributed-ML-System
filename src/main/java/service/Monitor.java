@@ -4,24 +4,21 @@ import core.Command;
 import core.Message;
 import core.Process;
 import core.ProcessStatus;
-import utils.MemberListUpdater;
 import utils.NeighborFilter;
 
 import java.io.IOException;
 import java.net.*;
-import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * To monitor neighbors, periodically check whether anyone of them crash
  */
 public class Monitor extends Thread{
-    private List<Process> membershipList = null;
-    private List<DatagramPacket> datagramPacketList = null;
-    private DatagramSocket datagramSocket = null;
-    boolean [] isAck = null;
-    public Monitor(List<Process> membershipList) throws SocketException {
-        this.membershipList = Main.membershipList;
+    private final List<DatagramPacket> datagramPacketList = new ArrayList<>();
+    private final DatagramSocket datagramSocket;
+    boolean [] isAck;
+    public Monitor() throws SocketException {
         this.isAck = Main.isAck;
         this.datagramSocket = new DatagramSocket();
     }
@@ -33,18 +30,18 @@ public class Monitor extends Thread{
                 for(int j = 0; j < 4; j ++){
                     isAck[j] = false;
                 }
-                // ping 4 neighors every 1 s
+                // ping 4 neighbors every 1 s
                 List<Process> neighbors = NeighborFilter.getNeighbors();
                 for(Process process : neighbors){
                     Message message = Message.newBuilder().setHostName(Main.hostName)
                                         .setPort(Main.port)
                                         .setCommand(Command.PING)
-                                        .setTimestamp(String.valueOf(Instant.now().getEpochSecond()))
-                                        .addAllMembership(membershipList).build();
+                                        .setTimestamp(Main.timestamp)
+                                        .addAllMembership(Main.membershipList).build();
                     byte[] data = message.toByteArray();
                     String address = process.getAddress();
                     long port = process.getPort();
-                    DatagramPacket packet = null;
+                    DatagramPacket packet;
                     try {
                         packet = new DatagramPacket(data, 0, data.length,
                                 InetAddress.getByName(address), (int) port);
