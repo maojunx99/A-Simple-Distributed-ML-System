@@ -8,6 +8,7 @@ import utils.NeighborFilter;
 
 import java.io.IOException;
 import java.net.*;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,7 +67,17 @@ public class Monitor extends Thread{
                 //check whether receive "ACK" from each neighbors
                 for(int k = 0; k < neighbors.size(); k ++){
                     if(!isAck[k]){
-                        neighbors.set(k, neighbors.get(k).toBuilder().setStatus(ProcessStatus.CRASHED).build());
+                        Process target = neighbors.get(k);
+                        int length = Main.membershipList.size();
+                        for(int i = 0; i < length; i++){
+                            if(Main.membershipList.get(i).getAddress().equals(target.getAddress())){
+                                Main.membershipList.set(i, Process.newBuilder()
+                                        .setStatus(ProcessStatus.CRASHED)
+                                        .setTimestamp(String.valueOf(Instant.now().getEpochSecond()))
+                                        .setAddress(target.getAddress())
+                                        .setPort(target.getPort()).build());
+                            }
+                        }
                     }
                 }
                 //send update message to 4 neighbors
