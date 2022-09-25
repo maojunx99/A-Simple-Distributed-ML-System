@@ -159,6 +159,7 @@ public class Main {
     private void join() throws InterruptedException {
         //call introducer to get list
         timestamp = Instant.now().getEpochSecond() + "";
+        Main.membershipList.set(0, Main.membershipList.get(0).toBuilder().setStatus(ProcessStatus.ALIVE).build());
         Sender.send(
                 introducer,
                 port,
