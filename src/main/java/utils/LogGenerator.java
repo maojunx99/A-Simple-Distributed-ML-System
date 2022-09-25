@@ -46,7 +46,7 @@ public class LogGenerator {
 
     public static void logging(LogType logType, String informHost, String informTimestamp, String hostName, String timestamp) throws IOException {
         String str = formatter.format(Instant.now()) + "[" + logType + "] " + informHost + "@" + informTimestamp
-                + " detected a crash on " + hostName + "@" + timestamp;
+                + " detected a crash on " + hostName + "@" + timestamp + "\n";
         out.write(str.getBytes(StandardCharsets.UTF_8));
     }
 
