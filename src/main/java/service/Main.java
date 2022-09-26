@@ -31,6 +31,7 @@ public class Main {
     public static int port;
     public static int timeBeforeCrash;
     public static final String hostName;
+    public static double lostRate;
     private static final Receiver receiver;
     static{
         try{
@@ -57,6 +58,7 @@ public class Main {
         isAck = new boolean[monitorRange * 2];
         introducer = properties.getProperty("introducer");
         port = Integer.parseInt(properties.getProperty("port"));
+        lostRate = Double.parseDouble(properties.getProperty("lost_rate"));
         timeBeforeCrash = Integer.parseInt(properties.getProperty("time_before_crash"));
         Instant time = Instant.now();
         timestamp = String.valueOf(time.getEpochSecond());
