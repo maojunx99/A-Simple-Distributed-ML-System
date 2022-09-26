@@ -114,24 +114,24 @@ public class Receiver extends Thread {
                                     .setCommand(Command.ACK)
                                     .build()
                     );
-                    for(int i = 0; i < Main.membershipList.size(); i++){
-                        Process process = Main.membershipList.get(i);
-                        if(process.getAddress().equals(message.getHostName())){
-                            if(process.getStatus() == ProcessStatus.CRASHED){
-                                Main.membershipList.set(i, process.toBuilder().setStatus(ProcessStatus.ALIVE).setTimestamp(message.getTimestamp()).build());
-                                Sender.send(Message.newBuilder().
-                                        setHostName(Main.hostName)
-                                        .setPort(Main.port)
-                                        .setCommand(Command.UPDATE)
-                                        .setTimestamp(Main.timestamp)
-                                        .addAllMembership(Main.membershipList)
-                                        .build(),
-                                        true
-                                );
-                            }
-                            break;
-                        }
-                    }
+//                    for(int i = 0; i < Main.membershipList.size(); i++){
+//                        Process process = Main.membershipList.get(i);
+//                        if(process.getAddress().equals(message.getHostName())){
+//                            if(process.getStatus() == ProcessStatus.CRASHED){
+//                                Main.membershipList.set(i, process.toBuilder().setStatus(ProcessStatus.ALIVE).setTimestamp(message.getTimestamp()).build());
+//                                Sender.send(Message.newBuilder().
+//                                        setHostName(Main.hostName)
+//                                        .setPort(Main.port)
+//                                        .setCommand(Command.UPDATE)
+//                                        .setTimestamp(Main.timestamp)
+//                                        .addAllMembership(Main.membershipList)
+//                                        .build(),
+//                                        true
+//                                );
+//                            }
+//                            break;
+//                        }
+//                    }
                     break;
                 case ACK:
                     // modify isAck
