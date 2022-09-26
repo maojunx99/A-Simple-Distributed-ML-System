@@ -5,6 +5,7 @@ import core.Message;
 import core.Process;
 import core.ProcessStatus;
 import grep.client.Client;
+import grep.server.Server;
 import utils.LogGenerator;
 import utils.MemberListUpdater;
 
@@ -30,6 +31,7 @@ public class Main {
     public static int port;
     public static int timeBeforeCrash;
     public static final String hostName;
+    public static double lostRate;
     private static final Receiver receiver;
     static{
         try{
@@ -56,6 +58,7 @@ public class Main {
         isAck = new boolean[monitorRange * 2];
         introducer = properties.getProperty("introducer");
         port = Integer.parseInt(properties.getProperty("port"));
+        lostRate = Double.parseDouble(properties.getProperty("lost_rate"));
         timeBeforeCrash = Integer.parseInt(properties.getProperty("time_before_crash"));
         Instant time = Instant.now();
         timestamp = String.valueOf(time.getEpochSecond());
@@ -71,6 +74,8 @@ public class Main {
         receiver.start();
         Thread monitor = new Thread(new Monitor());
         monitor.start();
+        Thread server = new Thread(new Server());
+        server.start();
     }
 
 
@@ -92,7 +97,7 @@ public class Main {
                 case "list_self":
                     main.print();
                     break;
-                case "grep":
+                case "grep -c": case "grep -Ec": case "grep":
                     System.out.println("please input grep content");
                     String query = scanner.nextLine();
                     try {
