@@ -30,17 +30,17 @@ public class Processer extends Thread {
                 if(str.equals("test")){
                     LogFile logFile = new LogFileImpl();
                     String content = logFile.getContent();
-                    System.out.println(content);
+//                    System.out.println(content);
                     out.writeUTF(content);
                 }else{
                     stringBuilder.append(str);
                     String[] args = {"sh", "-c",stringBuilder.toString()};
-                    for (String i : args) {
-                        System.out.println("args: " + i);
-                    }
+//                    for (String i : args) {
+//                        System.out.println("args: " + i);
+//                    }
                     String resGrep = new GrepImpl().grep(args);
                     int len = resGrep.length();
-                    System.out.println("length of grep result: " + len);
+//                    System.out.println("length of grep result: " + len);
                     if(len == 0){
                         out.writeUTF("");
                         continue;
@@ -50,7 +50,7 @@ public class Processer extends Thread {
                     }
                 }
                 out.flush();
-                System.out.println("write over"+"\n");
+//                System.out.println("write over"+"\n");
             }
         } catch (IOException e) {
         }

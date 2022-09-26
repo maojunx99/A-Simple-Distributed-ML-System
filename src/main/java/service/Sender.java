@@ -3,6 +3,7 @@ package service;
 import core.Message;
 
 import java.net.*;
+import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -21,9 +22,15 @@ public class Sender {
             TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 
     public static void send(Message message, boolean onlyNeighbors) {
+        if(new Random().nextDouble() < Main.lostRate){
+            return;
+        }
         senderThreadPool.execute(new SenderProcesser(message, onlyNeighbors));
     }
     public static void send(String hostname, int port, Message message){
+        if(new Random().nextDouble() < Main.lostRate){
+            return;
+        }
         senderThreadPool.execute(new SendSingleProcessor(hostname, port, message));
     }
 }
