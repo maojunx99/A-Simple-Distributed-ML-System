@@ -85,6 +85,19 @@ private static final long serialVersionUID = 0L;
                 input.readMessage(core.Process.parser(), extensionRegistry));
             break;
           }
+          case 50: {
+            core.FileOuterClass.File.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000001) != 0)) {
+              subBuilder = file_.toBuilder();
+            }
+            file_ = input.readMessage(core.FileOuterClass.File.parser(), extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(file_);
+              file_ = subBuilder.buildPartial();
+            }
+            bitField0_ |= 0x00000001;
+            break;
+          }
           default: {
             if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
@@ -120,6 +133,7 @@ private static final long serialVersionUID = 0L;
             core.Message.class, core.Message.Builder.class);
   }
 
+  private int bitField0_;
   public static final int HOSTNAME_FIELD_NUMBER = 1;
   private volatile java.lang.Object hostName_;
   /**
@@ -266,6 +280,32 @@ private static final long serialVersionUID = 0L;
     return membership_.get(index);
   }
 
+  public static final int FILE_FIELD_NUMBER = 6;
+  private core.FileOuterClass.File file_;
+  /**
+   * <code>optional .core.File file = 6;</code>
+   * @return Whether the file field is set.
+   */
+  @java.lang.Override
+  public boolean hasFile() {
+    return ((bitField0_ & 0x00000001) != 0);
+  }
+  /**
+   * <code>optional .core.File file = 6;</code>
+   * @return The file.
+   */
+  @java.lang.Override
+  public core.FileOuterClass.File getFile() {
+    return file_ == null ? core.FileOuterClass.File.getDefaultInstance() : file_;
+  }
+  /**
+   * <code>optional .core.File file = 6;</code>
+   */
+  @java.lang.Override
+  public core.FileOuterClass.FileOrBuilder getFileOrBuilder() {
+    return file_ == null ? core.FileOuterClass.File.getDefaultInstance() : file_;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -295,6 +335,9 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < membership_.size(); i++) {
       output.writeMessage(5, membership_.get(i));
     }
+    if (((bitField0_ & 0x00000001) != 0)) {
+      output.writeMessage(6, getFile());
+    }
     unknownFields.writeTo(output);
   }
 
@@ -322,6 +365,10 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(5, membership_.get(i));
     }
+    if (((bitField0_ & 0x00000001) != 0)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(6, getFile());
+    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -346,6 +393,11 @@ private static final long serialVersionUID = 0L;
     if (command_ != other.command_) return false;
     if (!getMembershipList()
         .equals(other.getMembershipList())) return false;
+    if (hasFile() != other.hasFile()) return false;
+    if (hasFile()) {
+      if (!getFile()
+          .equals(other.getFile())) return false;
+    }
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -369,6 +421,10 @@ private static final long serialVersionUID = 0L;
     if (getMembershipCount() > 0) {
       hash = (37 * hash) + MEMBERSHIP_FIELD_NUMBER;
       hash = (53 * hash) + getMembershipList().hashCode();
+    }
+    if (hasFile()) {
+      hash = (37 * hash) + FILE_FIELD_NUMBER;
+      hash = (53 * hash) + getFile().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -499,6 +555,7 @@ private static final long serialVersionUID = 0L;
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
         getMembershipFieldBuilder();
+        getFileFieldBuilder();
       }
     }
     @java.lang.Override
@@ -518,6 +575,12 @@ private static final long serialVersionUID = 0L;
       } else {
         membershipBuilder_.clear();
       }
+      if (fileBuilder_ == null) {
+        file_ = null;
+      } else {
+        fileBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
 
@@ -545,6 +608,7 @@ private static final long serialVersionUID = 0L;
     public core.Message buildPartial() {
       core.Message result = new core.Message(this);
       int from_bitField0_ = bitField0_;
+      int to_bitField0_ = 0;
       result.hostName_ = hostName_;
       result.port_ = port_;
       result.timestamp_ = timestamp_;
@@ -558,6 +622,15 @@ private static final long serialVersionUID = 0L;
       } else {
         result.membership_ = membershipBuilder_.build();
       }
+      if (((from_bitField0_ & 0x00000002) != 0)) {
+        if (fileBuilder_ == null) {
+          result.file_ = file_;
+        } else {
+          result.file_ = fileBuilder_.build();
+        }
+        to_bitField0_ |= 0x00000001;
+      }
+      result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
@@ -645,6 +718,9 @@ private static final long serialVersionUID = 0L;
             membershipBuilder_.addAllMessages(other.membership_);
           }
         }
+      }
+      if (other.hasFile()) {
+        mergeFile(other.getFile());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -1151,6 +1227,126 @@ private static final long serialVersionUID = 0L;
         membership_ = null;
       }
       return membershipBuilder_;
+    }
+
+    private core.FileOuterClass.File file_;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        core.FileOuterClass.File, core.FileOuterClass.File.Builder, core.FileOuterClass.FileOrBuilder> fileBuilder_;
+    /**
+     * <code>optional .core.File file = 6;</code>
+     * @return Whether the file field is set.
+     */
+    public boolean hasFile() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>optional .core.File file = 6;</code>
+     * @return The file.
+     */
+    public core.FileOuterClass.File getFile() {
+      if (fileBuilder_ == null) {
+        return file_ == null ? core.FileOuterClass.File.getDefaultInstance() : file_;
+      } else {
+        return fileBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>optional .core.File file = 6;</code>
+     */
+    public Builder setFile(core.FileOuterClass.File value) {
+      if (fileBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        file_ = value;
+        onChanged();
+      } else {
+        fileBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00000002;
+      return this;
+    }
+    /**
+     * <code>optional .core.File file = 6;</code>
+     */
+    public Builder setFile(
+        core.FileOuterClass.File.Builder builderForValue) {
+      if (fileBuilder_ == null) {
+        file_ = builderForValue.build();
+        onChanged();
+      } else {
+        fileBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000002;
+      return this;
+    }
+    /**
+     * <code>optional .core.File file = 6;</code>
+     */
+    public Builder mergeFile(core.FileOuterClass.File value) {
+      if (fileBuilder_ == null) {
+        if (((bitField0_ & 0x00000002) != 0) &&
+            file_ != null &&
+            file_ != core.FileOuterClass.File.getDefaultInstance()) {
+          file_ =
+            core.FileOuterClass.File.newBuilder(file_).mergeFrom(value).buildPartial();
+        } else {
+          file_ = value;
+        }
+        onChanged();
+      } else {
+        fileBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000002;
+      return this;
+    }
+    /**
+     * <code>optional .core.File file = 6;</code>
+     */
+    public Builder clearFile() {
+      if (fileBuilder_ == null) {
+        file_ = null;
+        onChanged();
+      } else {
+        fileBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000002);
+      return this;
+    }
+    /**
+     * <code>optional .core.File file = 6;</code>
+     */
+    public core.FileOuterClass.File.Builder getFileBuilder() {
+      bitField0_ |= 0x00000002;
+      onChanged();
+      return getFileFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .core.File file = 6;</code>
+     */
+    public core.FileOuterClass.FileOrBuilder getFileOrBuilder() {
+      if (fileBuilder_ != null) {
+        return fileBuilder_.getMessageOrBuilder();
+      } else {
+        return file_ == null ?
+            core.FileOuterClass.File.getDefaultInstance() : file_;
+      }
+    }
+    /**
+     * <code>optional .core.File file = 6;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        core.FileOuterClass.File, core.FileOuterClass.File.Builder, core.FileOuterClass.FileOrBuilder> 
+        getFileFieldBuilder() {
+      if (fileBuilder_ == null) {
+        fileBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            core.FileOuterClass.File, core.FileOuterClass.File.Builder, core.FileOuterClass.FileOrBuilder>(
+                getFile(),
+                getParentForChildren(),
+                isClean());
+        file_ = null;
+      }
+      return fileBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(
