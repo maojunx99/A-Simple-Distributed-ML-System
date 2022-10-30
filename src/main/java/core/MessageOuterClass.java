@@ -33,11 +33,12 @@ public final class MessageOuterClass {
       "ostName\030\001 \001(\t\022\014\n\004port\030\002 \001(\003\022\021\n\ttimestamp" +
       "\030\003 \001(\t\022\036\n\007command\030\004 \001(\0162\r.core.Command\022!" +
       "\n\nmembership\030\005 \003(\0132\r.core.Process\022\035\n\004fil" +
-      "e\030\006 \001(\0132\n.core.FileH\000\210\001\001B\007\n\005_file*~\n\007Com" +
-      "mand\022\010\n\004JOIN\020\000\022\t\n\005LEAVE\020\001\022\010\n\004PING\020\002\022\007\n\003A" +
-      "CK\020\003\022\n\n\006UPDATE\020\004\022\013\n\007DISPLAY\020\005\022\013\n\007WELCOME" +
-      "\020\006\022\n\n\006UPLOAD\020\007\022\014\n\010DOWNLOAD\020\010\022\013\n\007ELECTED\020" +
-      "\tB\002P\001b\006proto3"
+      "e\030\006 \001(\0132\n.core.FileH\000\210\001\001B\007\n\005_file*\246\001\n\007Co" +
+      "mmand\022\010\n\004JOIN\020\000\022\t\n\005LEAVE\020\001\022\010\n\004PING\020\002\022\007\n\003" +
+      "ACK\020\003\022\n\n\006UPDATE\020\004\022\013\n\007DISPLAY\020\005\022\013\n\007WELCOM" +
+      "E\020\006\022\n\n\006UPLOAD\020\007\022\014\n\010DOWNLOAD\020\010\022\013\n\007ELECTED" +
+      "\020\t\022\014\n\010READ_ACK\020\n\022\r\n\tWRITE_ACK\020\013\022\t\n\005REPLY" +
+      "\020\014B\002P\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

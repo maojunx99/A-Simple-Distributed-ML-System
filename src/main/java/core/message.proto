@@ -25,4 +25,7 @@ enum Command{
   UPLOAD = 7;
   DOWNLOAD = 8;
   ELECTED = 9;
+  READ_ACK = 10;
+  WRITE_ACK = 11;
+  REPLY = 12;
 }

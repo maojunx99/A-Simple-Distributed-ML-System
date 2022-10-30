@@ -48,6 +48,18 @@ public enum Command
    * <code>ELECTED = 9;</code>
    */
   ELECTED(9),
+  /**
+   * <code>READ_ACK = 10;</code>
+   */
+  READ_ACK(10),
+  /**
+   * <code>WRITE_ACK = 11;</code>
+   */
+  WRITE_ACK(11),
+  /**
+   * <code>REPLY = 12;</code>
+   */
+  REPLY(12),
   UNRECOGNIZED(-1),
   ;
 
@@ -91,6 +103,18 @@ public enum Command
    * <code>ELECTED = 9;</code>
    */
   public static final int ELECTED_VALUE = 9;
+  /**
+   * <code>READ_ACK = 10;</code>
+   */
+  public static final int READ_ACK_VALUE = 10;
+  /**
+   * <code>WRITE_ACK = 11;</code>
+   */
+  public static final int WRITE_ACK_VALUE = 11;
+  /**
+   * <code>REPLY = 12;</code>
+   */
+  public static final int REPLY_VALUE = 12;
 
 
   public final int getNumber() {
@@ -127,6 +151,9 @@ public enum Command
       case 7: return UPLOAD;
       case 8: return DOWNLOAD;
       case 9: return ELECTED;
+      case 10: return READ_ACK;
+      case 11: return WRITE_ACK;
+      case 12: return REPLY;
       default: return null;
     }
   }
