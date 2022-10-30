@@ -86,4 +86,16 @@ public interface MessageOrBuilder extends
    * <code>optional .core.File file = 6;</code>
    */
   core.FileOuterClass.FileOrBuilder getFileOrBuilder();
+
+  /**
+   * <code>string meta = 7;</code>
+   * @return The meta.
+   */
+  java.lang.String getMeta();
+  /**
+   * <code>string meta = 7;</code>
+   * @return The bytes for meta.
+   */
+  com.google.protobuf.ByteString
+      getMetaBytes();
 }

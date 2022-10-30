@@ -20,6 +20,7 @@ private static final long serialVersionUID = 0L;
     timestamp_ = "";
     command_ = 0;
     membership_ = java.util.Collections.emptyList();
+    meta_ = "";
   }
 
   @java.lang.Override
@@ -96,6 +97,12 @@ private static final long serialVersionUID = 0L;
               file_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000001;
+            break;
+          }
+          case 58: {
+            java.lang.String s = input.readStringRequireUtf8();
+
+            meta_ = s;
             break;
           }
           default: {
@@ -306,6 +313,44 @@ private static final long serialVersionUID = 0L;
     return file_ == null ? core.FileOuterClass.File.getDefaultInstance() : file_;
   }
 
+  public static final int META_FIELD_NUMBER = 7;
+  private volatile java.lang.Object meta_;
+  /**
+   * <code>string meta = 7;</code>
+   * @return The meta.
+   */
+  @java.lang.Override
+  public java.lang.String getMeta() {
+    java.lang.Object ref = meta_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      meta_ = s;
+      return s;
+    }
+  }
+  /**
+   * <code>string meta = 7;</code>
+   * @return The bytes for meta.
+   */
+  @java.lang.Override
+  public com.google.protobuf.ByteString
+      getMetaBytes() {
+    java.lang.Object ref = meta_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      meta_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -338,6 +383,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) != 0)) {
       output.writeMessage(6, getFile());
     }
+    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(meta_)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 7, meta_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -369,6 +417,9 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(6, getFile());
     }
+    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(meta_)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(7, meta_);
+    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -398,6 +449,8 @@ private static final long serialVersionUID = 0L;
       if (!getFile()
           .equals(other.getFile())) return false;
     }
+    if (!getMeta()
+        .equals(other.getMeta())) return false;
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -426,6 +479,8 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + FILE_FIELD_NUMBER;
       hash = (53 * hash) + getFile().hashCode();
     }
+    hash = (37 * hash) + META_FIELD_NUMBER;
+    hash = (53 * hash) + getMeta().hashCode();
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -581,6 +636,8 @@ private static final long serialVersionUID = 0L;
         fileBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000002);
+      meta_ = "";
+
       return this;
     }
 
@@ -630,6 +687,7 @@ private static final long serialVersionUID = 0L;
         }
         to_bitField0_ |= 0x00000001;
       }
+      result.meta_ = meta_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -721,6 +779,10 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasFile()) {
         mergeFile(other.getFile());
+      }
+      if (!other.getMeta().isEmpty()) {
+        meta_ = other.meta_;
+        onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -1347,6 +1409,82 @@ private static final long serialVersionUID = 0L;
         file_ = null;
       }
       return fileBuilder_;
+    }
+
+    private java.lang.Object meta_ = "";
+    /**
+     * <code>string meta = 7;</code>
+     * @return The meta.
+     */
+    public java.lang.String getMeta() {
+      java.lang.Object ref = meta_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        meta_ = s;
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>string meta = 7;</code>
+     * @return The bytes for meta.
+     */
+    public com.google.protobuf.ByteString
+        getMetaBytes() {
+      java.lang.Object ref = meta_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        meta_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>string meta = 7;</code>
+     * @param value The meta to set.
+     * @return This builder for chaining.
+     */
+    public Builder setMeta(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  
+      meta_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>string meta = 7;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearMeta() {
+      
+      meta_ = getDefaultInstance().getMeta();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>string meta = 7;</code>
+     * @param value The bytes for meta to set.
+     * @return This builder for chaining.
+     */
+    public Builder setMetaBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+      
+      meta_ = value;
+      onChanged();
+      return this;
     }
     @java.lang.Override
     public final Builder setUnknownFields(
