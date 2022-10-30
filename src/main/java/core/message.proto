@@ -2,6 +2,7 @@ syntax = "proto3";
 package core;
 
 import "core/process.proto";
+import "core/file.proto";
 option java_multiple_files = true;
 
 message Message{
@@ -10,6 +11,7 @@ message Message{
   string timestamp = 3;
   Command command = 4;
   repeated core.Process membership = 5;
+  optional File file = 6;
 }
 
 enum Command{
@@ -20,4 +22,7 @@ enum Command{
   UPDATE = 4;
   DISPLAY = 5;
   WELCOME = 6;
+  UPLOAD = 7;
+  DOWNLOAD = 8;
+  ELECTED = 9;
 }

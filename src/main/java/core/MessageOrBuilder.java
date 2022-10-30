@@ -71,4 +71,19 @@ public interface MessageOrBuilder extends
    */
   core.ProcessOrBuilder getMembershipOrBuilder(
       int index);
+
+  /**
+   * <code>optional .core.File file = 6;</code>
+   * @return Whether the file field is set.
+   */
+  boolean hasFile();
+  /**
+   * <code>optional .core.File file = 6;</code>
+   * @return The file.
+   */
+  core.FileOuterClass.File getFile();
+  /**
+   * <code>optional .core.File file = 6;</code>
+   */
+  core.FileOuterClass.FileOrBuilder getFileOrBuilder();
 }

@@ -36,6 +36,18 @@ public enum Command
    * <code>WELCOME = 6;</code>
    */
   WELCOME(6),
+  /**
+   * <code>UPLOAD = 7;</code>
+   */
+  UPLOAD(7),
+  /**
+   * <code>DOWNLOAD = 8;</code>
+   */
+  DOWNLOAD(8),
+  /**
+   * <code>ELECTED = 9;</code>
+   */
+  ELECTED(9),
   UNRECOGNIZED(-1),
   ;
 
@@ -67,6 +79,18 @@ public enum Command
    * <code>WELCOME = 6;</code>
    */
   public static final int WELCOME_VALUE = 6;
+  /**
+   * <code>UPLOAD = 7;</code>
+   */
+  public static final int UPLOAD_VALUE = 7;
+  /**
+   * <code>DOWNLOAD = 8;</code>
+   */
+  public static final int DOWNLOAD_VALUE = 8;
+  /**
+   * <code>ELECTED = 9;</code>
+   */
+  public static final int ELECTED_VALUE = 9;
 
 
   public final int getNumber() {
@@ -100,6 +124,9 @@ public enum Command
       case 4: return UPDATE;
       case 5: return DISPLAY;
       case 6: return WELCOME;
+      case 7: return UPLOAD;
+      case 8: return DOWNLOAD;
+      case 9: return ELECTED;
       default: return null;
     }
   }
