@@ -9,6 +9,9 @@ import grep.server.Server;
 import utils.LogGenerator;
 import utils.MemberListUpdater;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -33,10 +36,29 @@ public class Main {
     public static final String hostName;
     public static double lostRate;
     private static final Receiver receiver;
-    static{
-        try{
+
+    private static String localDirectory;
+
+    private static String sdfsDirectory;
+
+    private static String leader;
+
+    public static int copies;
+
+    private static boolean isLeader = false;
+
+    public static List<Process> nodeList;
+
+    // filename -> version 1, 2, 3
+    public static Map<String, Integer> storageList;
+
+    public static Map<String, List<String>> totalStorage;
+
+
+    static {
+        try {
             receiver = new Receiver();
-        }catch(SocketException e){
+        } catch (SocketException e) {
             throw new RuntimeException(e);
         }
     }
@@ -60,15 +82,18 @@ public class Main {
         port = Integer.parseInt(properties.getProperty("port"));
         lostRate = Double.parseDouble(properties.getProperty("lost_rate"));
         timeBeforeCrash = Integer.parseInt(properties.getProperty("time_before_crash"));
+        localDirectory = properties.getProperty("local_directory");
+        sdfsDirectory = properties.getProperty("sdfs_directory");
+        copies = Integer.parseInt(properties.getProperty("copies"));
         Instant time = Instant.now();
         timestamp = String.valueOf(time.getEpochSecond());
         membershipList = new ArrayList<>();
         membershipList.add(Process.newBuilder()
-                                .setAddress(hostName)
-                                .setPort(port)
-                                .setTimestamp(timestamp)
-                                .setStatus(ProcessStatus.ALIVE)
-                                .build()
+                .setAddress(hostName)
+                .setPort(port)
+                .setTimestamp(timestamp)
+                .setStatus(ProcessStatus.ALIVE)
+                .build()
         );
         Thread receiver = new Thread(new Receiver());
         receiver.start();
@@ -97,7 +122,9 @@ public class Main {
                 case "list_self":
                     main.print();
                     break;
-                case "grep -c": case "grep -Ec": case "grep":
+                case "grep -c":
+                case "grep -Ec":
+                case "grep":
                     System.out.println("please input grep content");
                     String query = scanner.nextLine();
                     try {
@@ -106,19 +133,70 @@ public class Main {
                         throw new RuntimeException(e);
                     }
                     break;
+                case "put":
+                    // TODO: implement upload
+                    // - is leader
+                    //   - decide which nodes store the file (may include leader itself)
+                    //   - send UPLOAD message to these nodes
+                    // - isn't leader
+                    //   - send UPLOAD_REQUEST to the leader
+                    //   - send UPLOAD message to members in the list returned by leader
+                    String localFileName = scanner.next();
+                    String sdfsFileName = scanner.next();
+                    main.uploadFile(localFileName, sdfsFileName);
+
+
+                    break;
+                case "get":
+                    // TODO: implement get
+                    // - is leader
+                    //   - find which nodes store the file
+                    // - isn't leader
+                    //   - send get request to leader and wait for reply
+                    // - fetch files from these nodes
+                    // - compare version and display the latest one
+                    // - inform nodes that has old versions to update files
+                    break;
+                case "delete":
+                    // TODO: implement delete file
+                    // - is leader
+                    //   - find which nodes store the file
+                    //   - inform these nodes to delete all versions of the certain file
+                    // - isn't leader
+                    //   - send get request to the leader
+                    break;
+                case "ls":
+                    // TODO: implement list storage of a file
+                    // - is leader
+                    //   - find which nodes store the file
+                    // - isn't leader
+                    //   - send request to leader and wait for the response
+                    //   - display the list in console
+                    break;
+                case "store":
+                    // TODO: implement store
+                    // no difference between the leader and trivial nodes
+                    // simply list out all files stored on this machine
+                    break;
+                case "get-version":
+                    // TODO: implement get versions of a file
+                    // - is leader
+                    // - isn't leader
+                    break;
                 default:
-                    System.out.println("wrong command, please re-input");
+                    System.out.println("[WARNING] Wrong command, please re-input");
             }
         }
         main.join();
     }
-    public static void listMem(){
+
+    public static void listMem() {
         // inform other processes to print their membership list
         Sender.send(Message.newBuilder()
-                .setHostName(hostName)
-                .setTimestamp(timestamp)
-                .setCommand(Command.DISPLAY)
-                .build(),
+                        .setHostName(hostName)
+                        .setTimestamp(timestamp)
+                        .setCommand(Command.DISPLAY)
+                        .build(),
                 false
         );
         display();
@@ -141,10 +219,10 @@ public class Main {
 
     private void leave() {
         //call sender to inform others
-        for(int i = 0; i < Main.membershipList.size(); i++){
+        for (int i = 0; i < Main.membershipList.size(); i++) {
             Process process = Main.membershipList.get(i);
-            if(process.getAddress().equals(hostName)){
-                timestamp = Instant.now().getEpochSecond()+"";
+            if (process.getAddress().equals(hostName)) {
+                timestamp = Instant.now().getEpochSecond() + "";
                 Main.membershipList.set(i, process.toBuilder().setStatus(ProcessStatus.LEAVED).setTimestamp(timestamp).build());
                 break;
             }
@@ -180,7 +258,7 @@ public class Main {
         while (membershipList.size() == 1) {
             Thread.sleep(1000);
             cnt++;
-            if(cnt > 5){
+            if (cnt > 5) {
                 System.out.println("[ERROR] the introducer is down!");
                 return;
             }
@@ -196,5 +274,32 @@ public class Main {
                 true
         );
         System.out.println("[INFO] Joined into the group!");
+    }
+
+    private boolean uploadFile(String localFileName, String sdfsFileName) {
+        if(!isLeader){
+            if(!uploadRequest(localFileName, sdfsFileName)){
+                return false;
+            }
+        }
+        // read file from local directory
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(localDirectory + localFileName));
+            System.out.println(in.readLine());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        // TODO: upload
+        return false;
+    }
+
+    private boolean uploadRequest(String localFileName, String sdfsFileName) {
+        if (leader == null) {
+            System.out.println("[WARNING] No leader currently! Please wait for a while and try again later!");
+            return false;
+        }
+        // TODO: send UPLOAD_REQUEST to leader
+
+        return true;
     }
 }
