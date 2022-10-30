@@ -37,17 +37,37 @@ public enum Command
    */
   WELCOME(6),
   /**
-   * <code>UPLOAD = 7;</code>
+   * <code>UPLOAD_REQUEST = 7;</code>
    */
-  UPLOAD(7),
+  UPLOAD_REQUEST(7),
   /**
-   * <code>DOWNLOAD = 8;</code>
+   * <code>UPLOAD = 8;</code>
    */
-  DOWNLOAD(8),
+  UPLOAD(8),
   /**
-   * <code>ELECTED = 9;</code>
+   * <code>DOWNLOAD_REQUEST = 9;</code>
    */
-  ELECTED(9),
+  DOWNLOAD_REQUEST(9),
+  /**
+   * <code>DOWNLOAD = 10;</code>
+   */
+  DOWNLOAD(10),
+  /**
+   * <code>ELECTED = 11;</code>
+   */
+  ELECTED(11),
+  /**
+   * <code>READ_ACK = 12;</code>
+   */
+  READ_ACK(12),
+  /**
+   * <code>WRITE_ACK = 13;</code>
+   */
+  WRITE_ACK(13),
+  /**
+   * <code>REPLY = 14;</code>
+   */
+  REPLY(14),
   UNRECOGNIZED(-1),
   ;
 
@@ -80,17 +100,37 @@ public enum Command
    */
   public static final int WELCOME_VALUE = 6;
   /**
-   * <code>UPLOAD = 7;</code>
+   * <code>UPLOAD_REQUEST = 7;</code>
    */
-  public static final int UPLOAD_VALUE = 7;
+  public static final int UPLOAD_REQUEST_VALUE = 7;
   /**
-   * <code>DOWNLOAD = 8;</code>
+   * <code>UPLOAD = 8;</code>
    */
-  public static final int DOWNLOAD_VALUE = 8;
+  public static final int UPLOAD_VALUE = 8;
   /**
-   * <code>ELECTED = 9;</code>
+   * <code>DOWNLOAD_REQUEST = 9;</code>
    */
-  public static final int ELECTED_VALUE = 9;
+  public static final int DOWNLOAD_REQUEST_VALUE = 9;
+  /**
+   * <code>DOWNLOAD = 10;</code>
+   */
+  public static final int DOWNLOAD_VALUE = 10;
+  /**
+   * <code>ELECTED = 11;</code>
+   */
+  public static final int ELECTED_VALUE = 11;
+  /**
+   * <code>READ_ACK = 12;</code>
+   */
+  public static final int READ_ACK_VALUE = 12;
+  /**
+   * <code>WRITE_ACK = 13;</code>
+   */
+  public static final int WRITE_ACK_VALUE = 13;
+  /**
+   * <code>REPLY = 14;</code>
+   */
+  public static final int REPLY_VALUE = 14;
 
 
   public final int getNumber() {
@@ -124,9 +164,14 @@ public enum Command
       case 4: return UPDATE;
       case 5: return DISPLAY;
       case 6: return WELCOME;
-      case 7: return UPLOAD;
-      case 8: return DOWNLOAD;
-      case 9: return ELECTED;
+      case 7: return UPLOAD_REQUEST;
+      case 8: return UPLOAD;
+      case 9: return DOWNLOAD_REQUEST;
+      case 10: return DOWNLOAD;
+      case 11: return ELECTED;
+      case 12: return READ_ACK;
+      case 13: return WRITE_ACK;
+      case 14: return REPLY;
       default: return null;
     }
   }

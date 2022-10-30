@@ -12,6 +12,7 @@ message Message{
   Command command = 4;
   repeated core.Process membership = 5;
   optional File file = 6;
+  string meta = 7;
 }
 
 enum Command{
@@ -22,7 +23,12 @@ enum Command{
   UPDATE = 4;
   DISPLAY = 5;
   WELCOME = 6;
-  UPLOAD = 7;
-  DOWNLOAD = 8;
-  ELECTED = 9;
+  UPLOAD_REQUEST = 7;
+  UPLOAD = 8;
+  DOWNLOAD_REQUEST = 9;
+  DOWNLOAD = 10;
+  ELECTED = 11;
+  READ_ACK = 12;
+  WRITE_ACK = 13;
+  REPLY = 14;
 }
