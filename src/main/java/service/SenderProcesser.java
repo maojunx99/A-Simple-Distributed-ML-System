@@ -53,7 +53,7 @@ public class SenderProcesser extends Thread{
         }
         if(message.getCommand() == Command.LEAVE){
             Main.membershipList = new ArrayList<>();
-            Main.membershipList.add(Process.newBuilder().setAddress(Main.hostName).setPort(Main.port).setTimestamp(Main.timestamp).setStatus(ProcessStatus.LEAVED).build()); 
+            Main.membershipList.add(Process.newBuilder().setAddress(Main.hostName).setPort(Main.port_membership).setTimestamp(Main.timestamp).setStatus(ProcessStatus.LEAVED).build());
         }
         datagramSocket.close();
     }

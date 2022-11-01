@@ -27,7 +27,7 @@ public class Receiver extends Thread {
 
     public Receiver() throws SocketException {
         try {
-            this.datagramSocket = new DatagramSocket(Main.port, InetAddress.getByName(Main.hostName));
+            this.datagramSocket = new DatagramSocket(Main.port_membership, InetAddress.getByName(Main.hostName));
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
@@ -79,7 +79,7 @@ public class Receiver extends Thread {
                     MemberListUpdater.update(message);
                     Sender.send(Message.newBuilder()
                                     .setHostName(Main.hostName)
-                                    .setPort(Main.port)
+                                    .setPort(Main.port_membership)
                                     .setTimestamp(Main.timestamp)
                                     .addAllMembership(Main.membershipList)
                                     .setCommand(Command.UPDATE)
@@ -110,7 +110,7 @@ public class Receiver extends Thread {
                             Message.newBuilder()
                                     .setHostName(Main.hostName)
                                     .setTimestamp(Main.timestamp)
-                                    .setPort(Main.port)
+                                    .setPort(Main.port_membership)
                                     .setCommand(Command.ACK)
                                     .build()
                     );
@@ -146,7 +146,7 @@ public class Receiver extends Thread {
                 case UPDATE:
                     // update membershipList according to message's membership list
                     if(MemberListUpdater.update(message)){
-                        Sender.send(Message.newBuilder().setHostName(Main.hostName).setTimestamp(Main.timestamp).setPort(Main.port)
+                        Sender.send(Message.newBuilder().setHostName(Main.hostName).setTimestamp(Main.timestamp).setPort(Main.port_membership)
                             .addAllMembership(Main.membershipList).setCommand(Command.UPDATE).build(), true);
                     }
                     break;
@@ -163,7 +163,7 @@ public class Receiver extends Thread {
                                     .setCommand(Command.WELCOME)
                                     .setHostName(Main.hostName)
                                     .setTimestamp(Main.timestamp)
-                                    .setPort(Main.port)
+                                    .setPort(Main.port_membership)
                                     .addAllMembership(Main.membershipList).build()
                     );
                     break;

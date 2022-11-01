@@ -33,5 +33,12 @@ public class Sender {
         }
         senderThreadPool.execute(new SendSingleProcessor(hostname, port, message));
     }
+    public static void sendSDFS(String hostname, int port, Message message){
+        senderThreadPool.execute(new SDFSSender(hostname, port, message));
+    }
+
+    public static void sendFile(String hostname, int port, String localFileName, String sdfsFileName){
+        senderThreadPool.execute(new SDFSSender(hostname, port, localFileName, sdfsFileName));
+    }
 }
 

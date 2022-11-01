@@ -6,18 +6,16 @@ import core.Process;
 import core.ProcessStatus;
 import grep.client.Client;
 import grep.server.Server;
-import utils.LogGenerator;
-import utils.MemberListUpdater;
+import utils.LeaderFunction;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.net.SocketException;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Main class, response to console command
@@ -31,13 +29,14 @@ public class Main {
     public static boolean[] isAck;
     public static int monitorRange;
     public static String introducer;
-    public static int port;
+    public static int port_membership;
+    public static int port_sdfs;
     public static int timeBeforeCrash;
     public static final String hostName;
     public static double lostRate;
     private static final Receiver receiver;
 
-    private static String localDirectory;
+    public static String localDirectory;
 
     private static String sdfsDirectory;
 
@@ -47,12 +46,16 @@ public class Main {
 
     private static boolean isLeader = false;
 
-    public static List<Process> nodeList;
+    public static List<Process> nodeList = null;
 
     // filename -> version 1, 2, 3
     public static Map<String, Integer> storageList;
 
     public static Map<String, List<String>> totalStorage;
+
+    public static final int SLEEPING_INTERVAL = 5;
+
+    public static final int MAX_SLEEPING_CYCLE = 10000;
 
 
     static {
@@ -79,7 +82,8 @@ public class Main {
         monitorRange = Integer.parseInt(properties.getProperty("monitor_range"));
         isAck = new boolean[monitorRange * 2];
         introducer = properties.getProperty("introducer");
-        port = Integer.parseInt(properties.getProperty("port"));
+        port_membership = Integer.parseInt(properties.getProperty("port_membership"));
+        port_sdfs = Integer.parseInt(properties.getProperty("port_sdfs"));
         lostRate = Double.parseDouble(properties.getProperty("lost_rate"));
         timeBeforeCrash = Integer.parseInt(properties.getProperty("time_before_crash"));
         localDirectory = properties.getProperty("local_directory");
@@ -90,7 +94,7 @@ public class Main {
         membershipList = new ArrayList<>();
         membershipList.add(Process.newBuilder()
                 .setAddress(hostName)
-                .setPort(port)
+                .setPort(port_membership)
                 .setTimestamp(timestamp)
                 .setStatus(ProcessStatus.ALIVE)
                 .build()
@@ -143,9 +147,11 @@ public class Main {
                     //   - send UPLOAD message to members in the list returned by leader
                     String localFileName = scanner.next();
                     String sdfsFileName = scanner.next();
-                    main.uploadFile(localFileName, sdfsFileName);
-
-
+                    if (main.uploadFile(localFileName, sdfsFileName)) {
+                        System.out.println("[INFO] Upload success!");
+                    } else {
+                        System.out.println("[INFO] Upload aborted!");
+                    }
                     break;
                 case "get":
                     // TODO: implement get
@@ -230,7 +236,7 @@ public class Main {
         Sender.send(
                 Message.newBuilder()
                         .setHostName(hostName)
-                        .setPort(port)
+                        .setPort(port_membership)
                         .setTimestamp(timestamp)
                         .setCommand(Command.LEAVE)
                         .build(),
@@ -245,10 +251,10 @@ public class Main {
         Main.membershipList.set(0, Main.membershipList.get(0).toBuilder().setStatus(ProcessStatus.ALIVE).build());
         Sender.send(
                 introducer,
-                port,
+                port_membership,
                 Message.newBuilder()
                         .setHostName(hostName)
-                        .setPort(port)
+                        .setPort(port_membership)
                         .setTimestamp(timestamp)
                         .setCommand(Command.JOIN)
                         .build()
@@ -266,7 +272,7 @@ public class Main {
         Sender.send(
                 Message.newBuilder()
                         .setHostName(hostName)
-                        .setPort(port)
+                        .setPort(port_membership)
                         .setCommand(Command.UPDATE)
                         .addAllMembership(membershipList)
                         .setTimestamp(timestamp)
@@ -277,20 +283,40 @@ public class Main {
     }
 
     private boolean uploadFile(String localFileName, String sdfsFileName) {
-        if(!isLeader){
-            if(!uploadRequest(localFileName, sdfsFileName)){
+        if (!isLeader) {
+            if (!uploadRequest(localFileName, sdfsFileName)) {
                 return false;
             }
+        } else {
+            Main.nodeList = LeaderFunction.getDataNodesToStoreFile(sdfsFileName)
+                    .stream()
+                    .map(
+                            (address) -> Process.newBuilder()
+                                    .setAddress(address)
+                                    .setPort(Main.port_sdfs)
+                                    .build()
+                    )
+                    .collect(Collectors.toList()
+                    );
         }
-        // read file from local directory
-        try {
-            BufferedReader in = new BufferedReader(new FileReader(localDirectory + localFileName));
-            System.out.println(in.readLine());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        // waiting for response from the server
+        int cnt = 0;
+        while (Main.nodeList == null && cnt < MAX_SLEEPING_CYCLE) {
+            try {
+                Thread.sleep(SLEEPING_INTERVAL);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            cnt++;
         }
-        // TODO: upload
-        return false;
+        if (Main.nodeList == null || Main.nodeList.size() == 0) {
+            return false;
+        }
+        for (Process process : Main.nodeList) {
+            Sender.sendFile(process.getAddress(), (int) process.getPort(), localFileName, sdfsFileName);
+        }
+        Main.nodeList = null;
+        return true;
     }
 
     private boolean uploadRequest(String localFileName, String sdfsFileName) {
@@ -298,8 +324,14 @@ public class Main {
             System.out.println("[WARNING] No leader currently! Please wait for a while and try again later!");
             return false;
         }
-        // TODO: send UPLOAD_REQUEST to leader
-
+        Sender.sendSDFS(
+                leader, Main.port_sdfs, Message.newBuilder()
+                        .setCommand(Command.UPLOAD_REQUEST)
+                        .setHostName(Main.hostName)
+                        .setPort(Main.port_sdfs)
+                        .setMeta(localFileName + " " + sdfsFileName)
+                        .build()
+        );
         return true;
     }
 }
