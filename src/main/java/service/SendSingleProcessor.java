@@ -3,10 +3,7 @@ package service;
 import core.Message;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
+import java.net.*;
 
 public class SendSingleProcessor extends Thread{
     public String hostName = null;
@@ -19,21 +16,14 @@ public class SendSingleProcessor extends Thread{
     }
     @Override
     public void run(){
-        DatagramSocket datagramSocket = null;
-        try {
-            datagramSocket = new DatagramSocket();
-        } catch (SocketException e) {
-            throw new RuntimeException(e);
-        }
+        Socket socket = null;
         byte[] arr = message.toByteArray();
         try {
-            DatagramPacket packet = null;
-            packet = new DatagramPacket(arr, 0, arr.length,
-                    InetAddress.getByName(hostName), port);
-            datagramSocket.send(packet);
+            socket = new Socket(hostName, port);
+            socket.getOutputStream().write(arr);
+            socket.close();
         }catch (IOException e){
             throw new RuntimeException(e);
         }
-        datagramSocket.close();
     }
 }

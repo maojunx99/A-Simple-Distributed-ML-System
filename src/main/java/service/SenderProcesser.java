@@ -22,29 +22,22 @@ public class SenderProcesser extends Thread{
     @Override
     public void run() {
         //
-        DatagramSocket datagramSocket = null;
-        try {
-            datagramSocket = new DatagramSocket();
-        } catch (SocketException e) {
-            throw new RuntimeException(e);
-        }
+        Socket socket = null;
         byte[] arr = message.toByteArray();
         List<Process> processList = onlyNeighbors ? NeighborFilter.getNeighbors() : Main.membershipList;
         try {
             if(onlyNeighbors){
                 for(Process process : processList){
-                    long port = process.getPort();
-                    DatagramPacket packet = new DatagramPacket(arr, 0, arr.length,
-                            InetAddress.getByName(process.getAddress()), (int) port);
-                    datagramSocket.send(packet);
+                    socket = new Socket(process.getAddress(),(int)process.getPort());
+                    socket.getOutputStream().write(arr);
+                    socket.close();
                 }
             }else{
                 for(Process process : processList){
                     if(!process.getAddress().equals(Main.hostName)){
-                        long port = process.getPort();
-                        DatagramPacket packet = new DatagramPacket(arr, 0, arr.length,
-                                InetAddress.getByName(process.getAddress()), (int) port);
-                        datagramSocket.send(packet);
+                        socket = new Socket(process.getAddress(),(int)process.getPort());
+                        socket.getOutputStream().write(arr);
+                        socket.close();
                     }
                 }
             }
@@ -55,6 +48,5 @@ public class SenderProcesser extends Thread{
             Main.membershipList = new ArrayList<>();
             Main.membershipList.add(Process.newBuilder().setAddress(Main.hostName).setPort(Main.port).setTimestamp(Main.timestamp).setStatus(ProcessStatus.LEAVED).build()); 
         }
-        datagramSocket.close();
     }
 }
