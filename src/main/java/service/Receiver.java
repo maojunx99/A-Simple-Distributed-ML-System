@@ -1,18 +1,18 @@
 package service;
 
-import core.*;
+import core.Command;
+import core.Message;
 import core.Process;
-import utils.LeaderFunction;
+import core.ProcessStatus;
 import utils.LogGenerator;
 import utils.MemberListUpdater;
 import utils.NeighborFilter;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.*;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -21,40 +21,32 @@ import java.util.concurrent.TimeUnit;
  * multi-threads receive messages from other processes
  */
 public class Receiver extends Thread {
-    //private final DatagramSocket datagramSocket;
+    private final DatagramSocket datagramSocket;
     private static final int corePoolSize = 10;
-    private final ServerSocket receiverSocket;
-    private HashMap<String, List> storageList;
-    private HashMap<String, List> globalStorageList;
     ThreadPoolExecutor threadPoolExecutor;
 
     public Receiver() throws SocketException {
         try {
-            this.receiverSocket = new ServerSocket(Main.port);
-            //this.datagramSocket = new DatagramSocket(Main.port, InetAddress.getByName(Main.hostName));
-        } catch (IOException e) {
+            this.datagramSocket = new DatagramSocket(Main.port_membership, InetAddress.getByName(Main.hostName));
+        } catch (UnknownHostException e) {
             throw new RuntimeException(e);
-        }
-        storageList = Main.storageList;
-        if(Main.isLeader){
-            globalStorageList = Main.globalStorageList;
         }
         int maximumPoolSize = Integer.MAX_VALUE / 2;
         threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 0L,
                 TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+
     }
     @Override
     public void run(){
-//        byte[] data = new byte[1024];
-//        DatagramPacket packet = new DatagramPacket(data, data.length);
-        Socket socket;
+        byte[] data = new byte[1024];
+        DatagramPacket packet = new DatagramPacket(data, data.length);
         try {
             while(true){
-                socket = receiverSocket.accept();
-                threadPoolExecutor.execute(new Executor(socket));
-//                byte[] temp = new byte[packet.getLength()];
-//                System.arraycopy(data,packet.getOffset(),temp,0,packet.getLength());
-//                Message message = Message.parseFrom(temp);
+                datagramSocket.receive(packet);
+                byte[] temp = new byte[packet.getLength()];
+                System.arraycopy(data,packet.getOffset(),temp,0,packet.getLength());
+                Message message = Message.parseFrom(temp);
+                threadPoolExecutor.execute(new Executor(message));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -63,15 +55,9 @@ public class Receiver extends Thread {
 
     static class Executor extends Thread {
         Message message;
-        Socket socket;
-        public Executor(Socket socket) throws IOException {
-            this.socket = socket;
-            InputStream inputStream = socket.getInputStream();
-            DataInputStream in = new DataInputStream(inputStream);
-            int len = in.available();
-            byte[] temp = new byte[len];
-            in.read(temp);
-            this.message = Message.parseFrom(temp);
+
+        public Executor(Message message) {
+            this.message = message;
         }
 
         @Override
@@ -88,16 +74,12 @@ public class Receiver extends Thread {
                 System.out.println("[MESSAGE] get " + this.message.getCommand() + " command from "
                         + this.message.getHostName() + "@" + this.message.getTimestamp());
             }
-            String fileName = null;
-            if(message.hasFile()){
-                fileName = message.getFile().getFileName();
-            }
             switch (this.message.getCommand()) {
                 case LEAVE:
                     MemberListUpdater.update(message);
                     Sender.send(Message.newBuilder()
                                     .setHostName(Main.hostName)
-                                    .setPort(Main.port)
+                                    .setPort(Main.port_membership)
                                     .setTimestamp(Main.timestamp)
                                     .addAllMembership(Main.membershipList)
                                     .setCommand(Command.UPDATE)
@@ -128,7 +110,7 @@ public class Receiver extends Thread {
                             Message.newBuilder()
                                     .setHostName(Main.hostName)
                                     .setTimestamp(Main.timestamp)
-                                    .setPort(Main.port)
+                                    .setPort(Main.port_membership)
                                     .setCommand(Command.ACK)
                                     .build()
                     );
@@ -164,7 +146,7 @@ public class Receiver extends Thread {
                 case UPDATE:
                     // update membershipList according to message's membership list
                     if(MemberListUpdater.update(message)){
-                        Sender.send(Message.newBuilder().setHostName(Main.hostName).setTimestamp(Main.timestamp).setPort(Main.port)
+                        Sender.send(Message.newBuilder().setHostName(Main.hostName).setTimestamp(Main.timestamp).setPort(Main.port_membership)
                             .addAllMembership(Main.membershipList).setCommand(Command.UPDATE).build(), true);
                     }
                     break;
@@ -181,104 +163,10 @@ public class Receiver extends Thread {
                                     .setCommand(Command.WELCOME)
                                     .setHostName(Main.hostName)
                                     .setTimestamp(Main.timestamp)
-                                    .setPort(Main.port)
+                                    .setPort(Main.port_membership)
                                     .addAllMembership(Main.membershipList).build()
                     );
                     break;
-                case UPLOAD:
-                    if(fileName == null){
-                        System.out.println("[ERROR] Nothing to upload!");
-                        break;
-                    }
-                    String version = message.getFile().getVersion();
-                    int index = fileName.lastIndexOf(".");
-                    String filepath = fileName.substring(0,index) + "@" + version + "." + fileName.substring(index+1);
-                    File file = new File(filepath);
-                    try {
-                        if(!file.exists()) {
-                            file.createNewFile();
-                        }
-                        FileOutputStream fileOutputStream = new FileOutputStream(file);
-                        fileOutputStream.write(message.getFile().getContent().toByteArray());
-                    }catch (IOException e){
-                        e.printStackTrace();
-                    }
-                    Main.storageList.put(fileName, Integer.parseInt(version));
-                    Sender.send(
-                            message.getHostName(),
-                            (int)message.getPort(),
-                            Message.newBuilder()
-                                    .setCommand(Command.WRITE_ACK)
-                                    .setHostName(Main.hostName)
-                                    .setTimestamp(Main.timestamp)
-                                    .setPort(Main.port)
-                                    .build()
-                    );
-                    break;
-                case UPLOAD_REQUEST:
-                    if(fileName == null){
-                        System.out.println("[ERROR] Nothing to upload!");
-                        break;
-                    }
-                    List<Process> dataNodeList = LeaderFunction.getDataNodesToStoreFile();
-                    if(!Main.totalStorage.containsKey(fileName)){
-                        Main.totalStorage.put(fileName, new ArrayList<String>());
-                    }
-                    for(Process process : dataNodeList){
-                        Main.totalStorage.get(fileName).add(process.getAddress());
-                    }
-                    //TODO:FIND FILE -> RETURN
-                    Sender.send(
-                            message.getHostName(),
-                            (int)message.getPort(),
-                            Message.newBuilder()
-                                    .setCommand(Command.REPLY)
-                                    .setHostName(Main.hostName)
-                                    .setTimestamp(Main.timestamp)
-                                    .setPort(Main.port)
-                                    .addAllMembership(dataNodeList)
-                                    .build()
-                    );
-                    break;
-//                case DOWNLOAD:
-//                    //TODO
-//                    Sender.send(
-//                            message.getHostName(),
-//                            (int)message.getPort(),
-//                            Message.newBuilder()
-//                                    .setCommand(Command.WRITE_ACK)
-//                                    .setHostName(Main.hostName)
-//                                    .setTimestamp(Main.timestamp)
-//                                    .setPort(Main.port)
-//                                    .setFile(FileOuterClass.File.newBuilder()
-//                                            .setFileName().build())
-//                                    .build()
-//                    );
-//                    break;
-//                case DOWNLOAD_REQUEST:
-//                    addressList = new ArrayList<>();
-//                    //TODO
-//                    Sender.send(
-//                            message.getHostName(),
-//                            (int)message.getPort(),
-//                            Message.newBuilder()
-//                                    .setCommand(Command.REPLY)
-//                                    .setHostName(Main.hostName)
-//                                    .setTimestamp(Main.timestamp)
-//                                    .setPort(Main.port)
-//                                    .addAllMembership(addressList)
-//                                    .build()
-//                    );
-//                    //TODO
-//                    break;
-                case REPLY:
-                    for(Process process : message.getMembershipList()){
-                        Main.nodeList.add(process);
-                    }
-                    break;
-//                case ELECTED:
-//                    //TODO
-//                    break;
                 default:
                     break;
             }

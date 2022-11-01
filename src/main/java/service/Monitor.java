@@ -37,7 +37,7 @@ public class Monitor extends Thread{
                 Main.timestamp = Instant.now().getEpochSecond() + "";
                 for(Process process : neighbors){
                     Message message = Message.newBuilder().setHostName(Main.hostName)
-                                        .setPort(Main.port)
+                                        .setPort(Main.port_membership)
                                         .setCommand(Command.PING)
                                         .setTimestamp(Main.timestamp)
                                         .addAllMembership(Main.membershipList).build();
@@ -106,7 +106,7 @@ public class Monitor extends Thread{
                 if(hasCrash){
                     //send update message to 4 neighbors
                     Message message = Message.newBuilder().setCommand(Command.UPDATE).setHostName(Main.hostName)
-                            .setPort(Main.port).setTimestamp(Main.timestamp).addAllMembership(Main.membershipList).build();
+                            .setPort(Main.port_membership).setTimestamp(Main.timestamp).addAllMembership(Main.membershipList).build();
                     Sender.send(message, true);
                 }
             }

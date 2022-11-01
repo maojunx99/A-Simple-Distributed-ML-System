@@ -1,15 +1,18 @@
 package service;
 
+import core.Command;
 import core.Message;
 import core.Process;
 import core.ProcessStatus;
-import core.Command;
 import utils.NeighborFilter;
 
 import java.io.IOException;
-import java.net.*;
-import java.util.List;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class SenderProcesser extends Thread{
     private Message message;
@@ -22,22 +25,29 @@ public class SenderProcesser extends Thread{
     @Override
     public void run() {
         //
-        Socket socket = null;
+        DatagramSocket datagramSocket = null;
+        try {
+            datagramSocket = new DatagramSocket();
+        } catch (SocketException e) {
+            throw new RuntimeException(e);
+        }
         byte[] arr = message.toByteArray();
         List<Process> processList = onlyNeighbors ? NeighborFilter.getNeighbors() : Main.membershipList;
         try {
             if(onlyNeighbors){
                 for(Process process : processList){
-                    socket = new Socket(process.getAddress(),(int)process.getPort());
-                    socket.getOutputStream().write(arr);
-                    socket.close();
+                    long port = process.getPort();
+                    DatagramPacket packet = new DatagramPacket(arr, 0, arr.length,
+                            InetAddress.getByName(process.getAddress()), (int) port);
+                    datagramSocket.send(packet);
                 }
             }else{
                 for(Process process : processList){
                     if(!process.getAddress().equals(Main.hostName)){
-                        socket = new Socket(process.getAddress(),(int)process.getPort());
-                        socket.getOutputStream().write(arr);
-                        socket.close();
+                        long port = process.getPort();
+                        DatagramPacket packet = new DatagramPacket(arr, 0, arr.length,
+                                InetAddress.getByName(process.getAddress()), (int) port);
+                        datagramSocket.send(packet);
                     }
                 }
             }
@@ -46,7 +56,8 @@ public class SenderProcesser extends Thread{
         }
         if(message.getCommand() == Command.LEAVE){
             Main.membershipList = new ArrayList<>();
-            Main.membershipList.add(Process.newBuilder().setAddress(Main.hostName).setPort(Main.port).setTimestamp(Main.timestamp).setStatus(ProcessStatus.LEAVED).build()); 
+            Main.membershipList.add(Process.newBuilder().setAddress(Main.hostName).setPort(Main.port_membership).setTimestamp(Main.timestamp).setStatus(ProcessStatus.LEAVED).build());
         }
+        datagramSocket.close();
     }
 }

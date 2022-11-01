@@ -2,7 +2,7 @@ package service;
 
 import core.Message;
 
-import java.net.*;
+import java.net.DatagramSocket;
 import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -32,6 +32,13 @@ public class Sender {
             return;
         }
         senderThreadPool.execute(new SendSingleProcessor(hostname, port, message));
+    }
+    public static void sendSDFS(String hostname, int port, Message message){
+        senderThreadPool.execute(new SDFSSender(hostname, port, message));
+    }
+
+    public static void sendFile(String hostname, int port, String localFileName, String sdfsFileName){
+        senderThreadPool.execute(new SDFSSender(hostname, port, localFileName, sdfsFileName));
     }
 }
 
