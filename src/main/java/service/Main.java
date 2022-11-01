@@ -37,7 +37,7 @@ public class Main {
 
     public static String localDirectory;
 
-    private static String sdfsDirectory;
+    public static String sdfsDirectory;
 
     private static String leader;
 
@@ -104,6 +104,8 @@ public class Main {
         monitor.start();
         Thread server = new Thread(new Server());
         server.start();
+        Thread sdfsReceiver = new Thread(new SDFSReceiver());
+        sdfsReceiver.start();
     }
 
 

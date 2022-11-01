@@ -1,18 +1,16 @@
 package service;
 
-import core.*;
+import core.Command;
+import core.Message;
 import core.Process;
+import core.ProcessStatus;
 import utils.LeaderFunction;
-import utils.LogGenerator;
-import utils.MemberListUpdater;
-import utils.NeighborFilter;
 
 import java.io.*;
-import java.net.*;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +25,7 @@ public class SDFSReceiver extends Thread {
     private final ServerSocket receiverSocket;
     ThreadPoolExecutor threadPoolExecutor;
 
-    public SDFSReceiver() throws SocketException {
+    public SDFSReceiver() {
         try {
             this.receiverSocket = new ServerSocket(port);
         } catch (IOException e) {
@@ -90,14 +88,18 @@ public class SDFSReceiver extends Thread {
                     }
                     String version = message.getFile().getVersion();
                     int index = fileName.lastIndexOf(".");
-                    String filepath = fileName.substring(0,index) + "@" + version + "." + fileName.substring(index+1);
+                    String filepath = Main.sdfsDirectory + fileName.substring(0,index) + "@" + version + "." + fileName.substring(index+1);
                     File file = new File(filepath);
                     try {
                         if(!file.exists()) {
-                            file.createNewFile();
+                            if(file.createNewFile()){
+                                FileOutputStream fileOutputStream = new FileOutputStream(file);
+                                fileOutputStream.write(message.getFile().getContent().toByteArray());
+                            }else{
+                                System.out.println("[ERROR] Failed to create file: " + filepath);
+                            }
                         }
-                        FileOutputStream fileOutputStream = new FileOutputStream(file);
-                        fileOutputStream.write(message.getFile().getContent().toByteArray());
+
                     }catch (IOException e){
                         e.printStackTrace();
                     }
@@ -123,7 +125,7 @@ public class SDFSReceiver extends Thread {
                     }
                     List<String> dataNodeList = LeaderFunction.getDataNodesToStoreFile(fileName);
                     if(!Main.totalStorage.containsKey(fileName)){
-                        Main.totalStorage.put(fileName, new ArrayList<String>());
+                        Main.totalStorage.put(fileName, new ArrayList<>());
                     }
                     List<Process> dataNodeMemberList = new ArrayList<>();
                     for(String dataNode : dataNodeList){
@@ -174,7 +176,7 @@ public class SDFSReceiver extends Thread {
 //                    //TODO
 //                    break;
                 case REPLY:
-                    Main.nodeList.addAll(message.getMembershipList());
+                    Main.nodeList = message.getMembershipList();
                     break;
 //                case ELECTED:
 //                    //TODO
