@@ -2,14 +2,15 @@ package service;
 
 import com.google.protobuf.ByteString;
 import core.Command;
+import core.FileOuterClass;
 import core.Message;
 
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
-import core.FileOuterClass;
 
 public class SDFSSender extends Thread {
     private final String hostName;

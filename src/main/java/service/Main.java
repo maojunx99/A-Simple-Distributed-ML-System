@@ -8,11 +8,10 @@ import grep.client.Client;
 import grep.server.Server;
 import utils.LeaderFunction;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -44,12 +43,12 @@ public class Main {
 
     public static int copies;
 
-    private static boolean isLeader = false;
+    static boolean isLeader = false;
 
     public static List<Process> nodeList = null;
 
     // filename -> version 1, 2, 3
-    public static Map<String, Integer> storageList;
+    public static  Map<String, Integer> storageList;
 
     public static Map<String, List<String>> totalStorage;
 

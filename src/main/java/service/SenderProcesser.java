@@ -1,15 +1,18 @@
 package service;
 
+import core.Command;
 import core.Message;
 import core.Process;
 import core.ProcessStatus;
-import core.Command;
 import utils.NeighborFilter;
 
 import java.io.IOException;
-import java.net.*;
-import java.util.List;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class SenderProcesser extends Thread{
     private Message message;
