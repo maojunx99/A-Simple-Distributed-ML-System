@@ -1,9 +1,8 @@
 package service;
 
-import core.Command;
-import core.Message;
+import com.google.protobuf.ByteString;
+import core.*;
 import core.Process;
-import core.ProcessStatus;
 import utils.LeaderFunction;
 
 import java.io.*;
@@ -144,43 +143,80 @@ public class SDFSReceiver extends Thread {
                                     .build()
                     );
                     break;
-//                case DOWNLOAD:
-//                    //TODO
-//                    Sender.send(
-//                            message.getHostName(),
-//                            (int)message.getPort(),
-//                            Message.newBuilder()
-//                                    .setCommand(Command.WRITE_ACK)
-//                                    .setHostName(Main.hostName)
-//                                    .setTimestamp(Main.timestamp)
-//                                    .setPort(Main.port)
-//                                    .setFile(FileOuterClass.File.newBuilder()
-//                                            .setFileName().build())
-//                                    .build()
-//                    );
-//                    break;
-//                case DOWNLOAD_REQUEST:
-//                    addressList = new ArrayList<>();
-//                    //TODO
-//                    Sender.send(
-//                            message.getHostName(),
-//                            (int)message.getPort(),
-//                            Message.newBuilder()
-//                                    .setCommand(Command.REPLY)
-//                                    .setHostName(Main.hostName)
-//                                    .setTimestamp(Main.timestamp)
-//                                    .setPort(Main.port)
-//                                    .addAllMembership(addressList)
-//                                    .build()
-//                    );
-//                    //TODO
-//                    break;
+                case DOWNLOAD:
+                    if(fileName == null){
+                        System.out.println("[ERROR] Nothing to download!");
+                        break;
+                    }
+                    String versionDownload = message.getFile().getVersion();
+                    String fileNameDownload = message.getFile().getFileName();
+                    if(!Main.storageList.containsKey(fileNameDownload)){
+                        System.out.println("[ERROR] Can not find download file!");
+                        break;
+                    }else{
+                        if(Main.storageList.get(message.getFile().getFileName()) > Integer.parseInt(versionDownload)){
+                            System.out.println("[ERROR] Can not find target version of "+ message.getFile().getFileName() + " !");
+                            break;
+                        }
+                    }
+                    String downloadPath = Main.localDirectory + fileNameDownload;
+                    File downloadFile = new File(downloadPath);
+                    byte[] fileData = null;
+                    try {
+                        if(!downloadFile.exists()) {
+                            System.out.println("[ERROR] Failed to find file: " + downloadPath);
+                        }else{
+                            FileInputStream fileInputStream = new FileInputStream(downloadFile);
+                            int len = fileInputStream.available();
+                            fileData = new byte[len];
+                            int readAck = fileInputStream.read(fileData);
+                            if(readAck != len){
+                                System.out.println("[ERROR] Errors in reading file " + downloadPath + " !");
+                            }
+                        }
+                    }catch (IOException e){
+                        e.printStackTrace();
+                    }
+                    Sender.send(
+                            message.getHostName(),
+                            (int)message.getPort(),
+                            Message.newBuilder()
+                                    .setCommand(Command.WRITE_ACK)
+                                    .setHostName(Main.hostName)
+                                    .setTimestamp(Main.timestamp)
+                                    .setPort(Main.port_sdfs)
+                                    .setFile(FileOuterClass.File.newBuilder()
+                                            .setFileName(fileNameDownload).setContent(ByteString.copyFrom(fileData)).build())
+                                    .build()
+                    );
+                    break;
+                case DOWNLOAD_REQUEST:
+                    if(!Main.isLeader){
+                        return;
+                    }
+                    List<Process> tempList = new ArrayList<>();
+                    for(String i : Main.totalStorage.get(fileName)){
+                        tempList.add(Process.newBuilder().setAddress(i).build());
+                    }
+                    Sender.sendSDFS(
+                            message.getHostName(),
+                            (int)message.getPort(),
+                            Message.newBuilder()
+                                    .setCommand(Command.REPLY)
+                                    .setHostName(Main.hostName)
+                                    .setTimestamp(Main.timestamp)
+                                    .setPort(Main.port_sdfs)
+                                    .addAllMembership(tempList)
+                                    .build()
+                    );
+                    break;
                 case REPLY:
                     Main.nodeList = message.getMembershipList();
                     break;
-//                case ELECTED:
-//                    //TODO
-//                    break;
+                case ELECTED:
+                    String electionResult = message.getMeta();
+                    Main.leader = electionResult;
+                    break;
                 default:
                     break;
             }
