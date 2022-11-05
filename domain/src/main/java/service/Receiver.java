@@ -36,15 +36,16 @@ public class Receiver extends Thread {
                 TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
     }
+
     @Override
-    public void run(){
+    public void run() {
         byte[] data = new byte[1024];
         DatagramPacket packet = new DatagramPacket(data, data.length);
         try {
-            while(true){
+            while (true) {
                 datagramSocket.receive(packet);
                 byte[] temp = new byte[packet.getLength()];
-                System.arraycopy(data,packet.getOffset(),temp,0,packet.getLength());
+                System.arraycopy(data, packet.getOffset(), temp, 0, packet.getLength());
                 Message message = Message.parseFrom(temp);
                 threadPoolExecutor.execute(new Executor(message));
             }
@@ -63,14 +64,14 @@ public class Receiver extends Thread {
         @Override
         public void run() {
             // if this process has left the group, then ignore all packages
-            for (Process process: Main.membershipList) {
-                if(process.getAddress().equals(Main.hostName)&&process.getStatus()==ProcessStatus.LEAVED){
+            for (Process process : Main.membershipList) {
+                if (process.getAddress().equals(Main.hostName) && process.getStatus() == ProcessStatus.LEAVED) {
                     return;
-                }else{
+                } else {
                     break;
                 }
             }
-            if(this.message.getCommand() != Command.PING && this.message.getCommand() != Command.ACK){
+            if (this.message.getCommand() != Command.PING && this.message.getCommand() != Command.ACK) {
                 System.out.println("[MESSAGE] get " + this.message.getCommand() + " command from "
                         + this.message.getHostName() + "@" + this.message.getTimestamp());
             }
@@ -90,9 +91,9 @@ public class Receiver extends Thread {
                 case WELCOME:
                     // update membership list
                     Main.membershipList = new ArrayList<>();
-                    for (Process process: message.getMembershipList()) {
+                    for (Process process : message.getMembershipList()) {
                         Main.membershipList.add(process);
-                        if(!process.getAddress().equals(Main.hostName)){
+                        if (!process.getAddress().equals(Main.hostName)) {
                             try {
                                 LogGenerator.logging(LogGenerator.LogType.JOIN, process.getAddress(), process.getTimestamp(), ProcessStatus.ALIVE);
                             } catch (IOException e) {
@@ -137,7 +138,7 @@ public class Receiver extends Thread {
                     // modify isAck
                     List<Process> neighbor = NeighborFilter.getNeighbors();
                     for (int i = 0; i < neighbor.size(); i++) {
-                        if(message.getHostName().equals(neighbor.get(i).getAddress())){
+                        if (message.getHostName().equals(neighbor.get(i).getAddress())) {
                             Main.isAck[i] = true;
                             break;
                         }
@@ -145,9 +146,9 @@ public class Receiver extends Thread {
                     break;
                 case UPDATE:
                     // update membershipList according to message's membership list
-                    if(MemberListUpdater.update(message)){
+                    if (MemberListUpdater.update(message)) {
                         Sender.send(Message.newBuilder().setHostName(Main.hostName).setTimestamp(Main.timestamp).setPort(Main.port_membership)
-                            .addAllMembership(Main.membershipList).setCommand(Command.UPDATE).build(), true);
+                                .addAllMembership(Main.membershipList).setCommand(Command.UPDATE).build(), true);
                     }
                     break;
                 case DISPLAY:
@@ -158,7 +159,7 @@ public class Receiver extends Thread {
                     MemberListUpdater.update(message);
                     Sender.send(
                             message.getHostName(),
-                            (int)message.getPort(),
+                            (int) message.getPort(),
                             Message.newBuilder()
                                     .setCommand(Command.WELCOME)
                                     .setHostName(Main.hostName)
@@ -167,6 +168,10 @@ public class Receiver extends Thread {
                                     .addAllMembership(Main.membershipList).build()
                     );
                     break;
+                case ELECTED:
+                    String electionResult = message.getMeta();
+                    Main.leader = electionResult;
+                    System.out.println("[INFO] Leader is " + Main.leader);
                 default:
                     break;
             }

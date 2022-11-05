@@ -10,6 +10,7 @@ import java.util.Random;
 
 public class LeaderFunction {
     public static List<String> getDataNodesToStoreFile(String sdfsFileName) {
+        System.out.println("[INFO] Start find node list");
         List<String> list = new ArrayList<>();
         if (Main.totalStorage.containsKey(sdfsFileName)) {
             return Main.totalStorage.get(sdfsFileName);
@@ -23,22 +24,25 @@ public class LeaderFunction {
             if (process.getStatus() == ProcessStatus.ALIVE) {
                 aliveCnt++;
                 if (r.nextBoolean()) {
+                    System.out.println("[INFO] Add " + process.getAddress());
                     list.add(process.getAddress());
                     isSelected[i] = true;
                 }
             }
         }
-        if (aliveCnt < Main.copies) {
+        if (aliveCnt < 2) {
             System.out.println("[WARNING] No enough nodes in the group!");
             return list;
         }
-        while (list.size() < Main.copies) {
+        while (list.size() < 2) {
+            System.out.println(list.size());
             if (Main.membershipList.get(index).getStatus() == ProcessStatus.ALIVE && !isSelected[index] && r.nextBoolean()) {
                 list.add(Main.membershipList.get(index).getAddress());
                 isSelected[index] = true;
             }
             index = (index + 1) % Main.membershipList.size();
         }
+        Main.totalStorage.put(sdfsFileName, list);
         return list;
     }
 }

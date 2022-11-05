@@ -58,6 +58,7 @@ public class Sender {
     }
 
     public static void sendFile(String hostname, int port, String localFileName, String sdfsFileName) {
+        System.out.println("[INFO] Sending file " + sdfsFileName + " to " + hostname);
         senderThreadPool.execute(new SDFSSender(hostname, port, localFileName, sdfsFileName));
     }
 

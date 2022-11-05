@@ -57,7 +57,6 @@ public class SDFSReceiver extends Thread {
             DataInputStream in = new DataInputStream(inputStream);
             int len = in.available();
             byte[] temp = new byte[len];
-            in.readUTF().getBytes("UTF-8");
             this.message = Message.parseFrom(temp);
         }
 
@@ -220,9 +219,13 @@ public class SDFSReceiver extends Thread {
                     }catch (IOException e){
                         e.printStackTrace();
                     }
-                    //TODO: ack + 1
+                    Main.READ_ACK ++;
+                    break;
                 case WRITE_ACK:
-                    //TODO:
+                    Main.WRITE_ACK ++;
+                    break;
+                case DELETE:
+                    break;
                 case DELETE_REQUEST:
                     if(!Main.isLeader){
                         return;
@@ -230,14 +233,14 @@ public class SDFSReceiver extends Thread {
                     List<String> deleteList = Main.totalStorage.get(fileName);
                     for(String i : deleteList){
                         Sender.sendSDFS(
-                                message.getHostName(),
+                                i,
                                 (int)message.getPort(),
                                 Message.newBuilder()
                                         .setCommand(Command.DELETE)
                                         .setHostName(Main.hostName)
                                         .setTimestamp(Main.timestamp)
                                         .setPort(Main.port_sdfs)
-                                        .addAllMembership(tempList)
+                                        .setMeta(fileName)
                                         .build()
                         );
                     }
