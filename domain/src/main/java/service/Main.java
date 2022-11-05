@@ -39,7 +39,7 @@ public class Main {
 
     public static String sdfsDirectory;
 
-    private static String leader;
+    static String leader;
 
     public static int copies;
 
@@ -270,7 +270,7 @@ public class Main {
         }
         boolean isLargest = true;
         for (Process process : membershipList) {
-            if (process.getAddress().compareTo(Main.hostName) < 0) {
+            if (process.getAddress().compareTo(Main.hostName) > 0) {
                 isLargest = false;
                 break;
             }

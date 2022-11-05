@@ -57,7 +57,7 @@ public class SDFSReceiver extends Thread {
             DataInputStream in = new DataInputStream(inputStream);
             int len = in.available();
             byte[] temp = new byte[len];
-            in.read(temp);
+            in.readUTF().getBytes("UTF-8");
             this.message = Message.parseFrom(temp);
         }
 
@@ -85,7 +85,8 @@ public class SDFSReceiver extends Thread {
                         System.out.println("[ERROR] Nothing to upload!");
                         break;
                     }
-                    String version = message.getFile().getVersion();
+                    int version = Main.storageList.getOrDefault(fileName, 0) + 1;
+                    Main.storageList.put(fileName, version);
                     int index = fileName.lastIndexOf(".");
                     String filepath = Main.sdfsDirectory + fileName.substring(0,index) + "@" + version + "." + fileName.substring(index+1);
                     File file = new File(filepath);
@@ -98,11 +99,9 @@ public class SDFSReceiver extends Thread {
                                 System.out.println("[ERROR] Failed to create file: " + filepath);
                             }
                         }
-
                     }catch (IOException e){
                         e.printStackTrace();
                     }
-                    Main.storageList.put(fileName, Integer.parseInt(version));
                     Sender.sendSDFS(
                             message.getHostName(),
                             (int)message.getPort(),
@@ -123,9 +122,6 @@ public class SDFSReceiver extends Thread {
                         break;
                     }
                     List<String> dataNodeList = LeaderFunction.getDataNodesToStoreFile(fileName);
-                    if(!Main.totalStorage.containsKey(fileName)){
-                        Main.totalStorage.put(fileName, new ArrayList<>());
-                    }
                     List<Process> dataNodeMemberList = new ArrayList<>();
                     for(String dataNode : dataNodeList){
                         Main.totalStorage.get(fileName).add(dataNode);
@@ -148,18 +144,14 @@ public class SDFSReceiver extends Thread {
                         System.out.println("[ERROR] Nothing to download!");
                         break;
                     }
-                    String versionDownload = message.getFile().getVersion();
-                    String fileNameDownload = message.getFile().getFileName();
-                    if(!Main.storageList.containsKey(fileNameDownload)){
+                    if(!Main.storageList.containsKey(fileName)){
                         System.out.println("[ERROR] Can not find download file!");
                         break;
-                    }else{
-                        if(Main.storageList.get(message.getFile().getFileName()) > Integer.parseInt(versionDownload)){
-                            System.out.println("[ERROR] Can not find target version of "+ message.getFile().getFileName() + " !");
-                            break;
-                        }
                     }
-                    String downloadPath = Main.localDirectory + fileNameDownload;
+                    int latesetVerison = Main.storageList.get(fileName);
+                    String downloadPath = Main.sdfsDirectory + fileName;
+                    int dotIndex = downloadPath.lastIndexOf(".");
+                    downloadPath = downloadPath.substring(0, dotIndex) + "@" + latesetVerison + downloadPath.substring(dotIndex);
                     File downloadFile = new File(downloadPath);
                     byte[] fileData = null;
                     try {
@@ -186,13 +178,16 @@ public class SDFSReceiver extends Thread {
                                     .setTimestamp(Main.timestamp)
                                     .setPort(Main.port_sdfs)
                                     .setFile(FileOuterClass.File.newBuilder()
-                                            .setFileName(fileNameDownload).setContent(ByteString.copyFrom(fileData)).build())
+                                            .setFileName(fileName).setContent(ByteString.copyFrom(fileData)).build())
                                     .build()
                     );
                     break;
                 case DOWNLOAD_REQUEST:
                     if(!Main.isLeader){
                         return;
+                    }
+                    if(!Main.totalStorage.containsKey(fileName)){
+                        System.out.println("[INFO] Target file does not exit in SDFS: " + fileName);
                     }
                     List<Process> tempList = new ArrayList<>();
                     for(String i : Main.totalStorage.get(fileName)){
@@ -210,12 +205,48 @@ public class SDFSReceiver extends Thread {
                                     .build()
                     );
                     break;
+                case READ_ACK:
+                    String savePath = Main.localDirectory + message.getFile().getFileName();
+                    File readFile = new File(savePath);
+                    try {
+                        if(!readFile.exists()) {
+                            if(readFile.createNewFile()){
+                                FileOutputStream fileOutputStream = new FileOutputStream(readFile);
+                                fileOutputStream.write(message.getFile().getContent().toByteArray());
+                            }else{
+                                System.out.println("[INFO] File already exists: " + readFile);
+                            }
+                        }
+                    }catch (IOException e){
+                        e.printStackTrace();
+                    }
+                    //TODO: ack + 1
+                case WRITE_ACK:
+                    //TODO:
+                case DELETE_REQUEST:
+                    if(!Main.isLeader){
+                        return;
+                    }
+                    List<String> deleteList = Main.totalStorage.get(fileName);
+                    for(String i : deleteList){
+                        Sender.sendSDFS(
+                                message.getHostName(),
+                                (int)message.getPort(),
+                                Message.newBuilder()
+                                        .setCommand(Command.DELETE)
+                                        .setHostName(Main.hostName)
+                                        .setTimestamp(Main.timestamp)
+                                        .setPort(Main.port_sdfs)
+                                        .addAllMembership(tempList)
+                                        .build()
+                        );
+                    }
                 case REPLY:
                     Main.nodeList = message.getMembershipList();
                     break;
                 case ELECTED:
-                    String electionResult = message.getMeta();
-                    Main.leader = electionResult;
+                    Main.leader = message.getMeta();
+                    System.out.println("[INFO] Leader is " + Main.leader + " !");
                     break;
                 default:
                     break;
