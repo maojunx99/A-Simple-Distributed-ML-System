@@ -10,6 +10,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -60,12 +61,22 @@ public class SDFSReceiver extends Thread {
             byte[] buff = new byte[1024];
             int k = -1;
             while((k = inputStream.read(buff, 0, buff.length)) > -1) {
-                byte[] temp = new byte[bytes.length + k]; // temp buffer size = bytes already read + bytes last read
-                System.arraycopy(bytes, 0, temp, 0, bytes.length); // copy previous bytes
-                System.arraycopy(buff, 0, temp, bytes.length, k);  // copy current lot
+                byte[] temp;
+                if(buff[0]==0){
+                    temp = new byte[bytes.length + k - 1];
+                    System.arraycopy(bytes, 0, temp, 0, bytes.length);
+                    System.arraycopy(buff, 2, temp, bytes.length, k - 2);  // copy current lot
+                }else{
+                    temp = new byte[bytes.length + k];
+                    System.arraycopy(bytes, 0, temp, 0, bytes.length);
+                    System.arraycopy(buff, 0, temp, bytes.length, k);  // copy current lot
+                }
                 bytes = temp; // call the temp buffer as your result buff
             }
+            System.out.println(new String(bytes, StandardCharsets.UTF_8));
+            System.out.println(Arrays.toString(bytes));
             this.message = Message.parseFrom(bytes);
+            inputStream.close();
         }
 
         @Override

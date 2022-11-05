@@ -318,7 +318,7 @@ public class Main {
         }
         System.out.println("[INFO] Got the node list from leader!");
         for (Process process : Main.nodeList) {
-            Sender.sendFile(process.getAddress(), (int) process.getPort(), localFileName, sdfsFileName);
+            Sender.sendFile(process.getAddress(), Main.port_sdfs, localFileName, sdfsFileName);
         }
         Main.nodeList = null;
         return true;

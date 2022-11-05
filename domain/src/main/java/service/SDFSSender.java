@@ -73,27 +73,28 @@ public class SDFSSender extends Thread {
             throw new RuntimeException(e);
         }
         System.out.println(Arrays.toString(contents));
+        Message message1 = Message.newBuilder()
+                .setHostName(Main.hostName)
+                .setPort(Main.port_sdfs)
+                .setCommand(Command.UPLOAD)
+                .setFile(FileOuterClass.File.newBuilder()
+                        .setFileName(sdfsFileName)
+                        .setContent(ByteString.copyFrom(contents))
+                        .build()
+                )
+                .build();
+        System.out.println("[MESSAGE] send out: " + message1);
         try {
-            outputStream.writeUTF(String.valueOf(
-                    Message.newBuilder()
-                            .setHostName(Main.hostName)
-                            .setPort(Main.port_sdfs)
-                            .setCommand(Command.UPLOAD)
-                            .setFile(FileOuterClass.File.newBuilder()
-                                    .setFileName(sdfsFileName)
-                                    .setContent(ByteString.copyFrom(contents))
-                                    .build()
-                            )
-                            .build()
-            ));
+            outputStream.write(message1.toByteArray());
+            try {
+                socket.shutdownOutput();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        try {
-            socket.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+
         // refer to https://srikarthiks.files.wordpress.com/2019/07/file-transfer-using-tcp.pdf
     }
 }
