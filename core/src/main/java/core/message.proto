@@ -31,4 +31,6 @@ enum Command{
   READ_ACK = 12;
   WRITE_ACK = 13;
   REPLY = 14;
+  DELETE_REQUEST = 15;
+  DELETE = 16;
 }

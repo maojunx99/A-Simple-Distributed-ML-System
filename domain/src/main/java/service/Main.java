@@ -54,6 +54,10 @@ public class Main {
 
     public static final int MAX_SLEEPING_CYCLE = 10000;
 
+    public static int READ_ACK = 0;
+
+    public static int WRITE_ACK = 0;
+
 
     static {
         try {
