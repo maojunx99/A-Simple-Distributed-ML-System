@@ -1,9 +1,7 @@
 package service;
 
-import core.Command;
-import core.Message;
+import core.*;
 import core.Process;
-import core.ProcessStatus;
 import dns.DNS;
 import grep.client.Client;
 import grep.server.Server;
@@ -39,7 +37,7 @@ public class Main {
 
     public static String sdfsDirectory;
 
-    private static String leader;
+    public static String leader;
 
     public static int copies;
 
@@ -91,6 +89,7 @@ public class Main {
                 .build()
         );
         introducer = DNS.getIntroducer();
+        totalStorage = new HashMap<>();
         Thread receiver = new Thread(new Receiver());
         receiver.start();
         Thread monitor = new Thread(new Monitor());
@@ -134,13 +133,6 @@ public class Main {
                     }
                     break;
                 case "put":
-                    // TODO: implement upload
-                    // - is leader
-                    //   - decide which nodes store the file (may include leader itself)
-                    //   - send UPLOAD message to these nodes
-                    // - isn't leader
-                    //   - send UPLOAD_REQUEST to the leader
-                    //   - send UPLOAD message to members in the list returned by leader
                     String localFileName = scanner.next();
                     String sdfsFileName = scanner.next();
                     if (main.uploadFile(localFileName, sdfsFileName)) {
@@ -150,14 +142,12 @@ public class Main {
                     }
                     break;
                 case "get":
-                    // TODO: implement get
-                    // - is leader
-                    //   - find which nodes store the file
-                    // - isn't leader
-                    //   - send get request to leader and wait for reply
-                    // - fetch files from these nodes
-                    // - compare version and display the latest one
-                    // - inform nodes that has old versions to update files
+                    String fileName = scanner.next();
+                    if (main.getFile(fileName)) {
+                        System.out.println("[INFO] Upload success!");
+                    } else {
+                        System.out.println("[INFO] Upload aborted!");
+                    }
                     break;
                 case "delete":
                     // TODO: implement delete file
@@ -270,12 +260,14 @@ public class Main {
         }
         boolean isLargest = true;
         for (Process process : membershipList) {
-            if (process.getAddress().compareTo(Main.hostName) < 0) {
+            System.out.println("[INFO] compare with process" + process.getAddress());
+            if (process.getAddress().compareTo(Main.hostName) > 0) {
                 isLargest = false;
                 break;
             }
         }
         if (isLargest) {
+            System.out.println("[ELECTED] Send out ELECTED message: " + Main.hostName);
             // end out elected message to other processes
             Sender.electedNewLeaderAs(Main.hostName);
             isLeader = true;
@@ -294,6 +286,12 @@ public class Main {
     }
 
     private boolean uploadFile(String localFileName, String sdfsFileName) {
+        // - is leader
+        //   - decide which nodes store the file (may include leader itself)
+        //   - send UPLOAD message to these nodes
+        // - isn't leader
+        //   - send UPLOAD_REQUEST to the leader
+        //   - send UPLOAD message to members in the list returned by leader
         if (!isLeader) {
             if (!uploadRequest(localFileName, sdfsFileName)) {
                 return false;
@@ -307,22 +305,14 @@ public class Main {
                                     .setPort(Main.port_sdfs)
                                     .build()
                     )
-                    .collect(Collectors.toList()
-                    );
+                    .collect(Collectors.toList());
         }
         // waiting for response from the server
-        int cnt = 0;
-        while (Main.nodeList == null && cnt < MAX_SLEEPING_CYCLE) {
-            try {
-                Thread.sleep(SLEEPING_INTERVAL);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            cnt++;
-        }
-        if (Main.nodeList == null || Main.nodeList.size() == 0) {
+        if (waiting4NodeList()) {
+            System.out.println("[WARNING] Haven't got the node list from leader!");
             return false;
         }
+        System.out.println("[INFO] Got the node list from leader!");
         for (Process process : Main.nodeList) {
             Sender.sendFile(process.getAddress(), (int) process.getPort(), localFileName, sdfsFileName);
         }
@@ -340,9 +330,87 @@ public class Main {
                         .setCommand(Command.UPLOAD_REQUEST)
                         .setHostName(Main.hostName)
                         .setPort(Main.port_sdfs)
-                        .setMeta(localFileName + " " + sdfsFileName)
+                        .setFile(FileOuterClass.File.newBuilder().setFileName(sdfsFileName))
                         .build()
         );
         return true;
+    }
+
+    private boolean getFile(String fileName) {
+        // - is leader
+        //   - find which nodes store the file
+        // - isn't leader
+        //   - send get request to leader and wait for reply
+        // - fetch files from these nodes
+        // - compare version and display the latest one
+        // - TODO: inform nodes that have old versions to update files
+        if (isLeader) {
+            Main.nodeList = LeaderFunction.getDataNodesToStoreFile(fileName)
+                    .stream()
+                    .map(
+                            (address) -> Process.newBuilder()
+                                    .setAddress(address)
+                                    .setPort(Main.port_sdfs)
+                                    .build()
+                    )
+                    .collect(Collectors.toList());
+        } else {
+            if (!getRequest(fileName)) {
+                return false;
+            }
+        }
+        // waiting for response from the server
+        if (waiting4NodeList()) {
+            System.out.println("[WARNING] Haven't got the node list from leader!");
+            return false;
+        }
+        System.out.println("[INFO] Got the node list from leader!");
+
+        for (Process process : Main.nodeList) {
+            Sender.sendSDFS(
+                    process.getAddress(),
+                    port_sdfs,
+                    Message.newBuilder()
+                            .setHostName(Main.hostName)
+                            .setPort(port_sdfs)
+                            .setCommand(Command.DOWNLOAD)
+                            .setFile(FileOuterClass.File.newBuilder()
+                                    .setFileName(fileName)
+                                    .setVersion(String.valueOf(1)))
+                            .build()
+            );
+        }
+        Main.nodeList = null;
+        return true;
+    }
+
+    private boolean getRequest(String fileName) {
+        if (leader == null) {
+            System.out.println("[WARNING] No leader currently! Please wait for a while and try again later!");
+            return false;
+        }
+        // file version refer to recent nums of versions
+        Sender.sendSDFS(
+                leader, Main.port_sdfs, Message.newBuilder()
+                        .setCommand(Command.UPLOAD_REQUEST)
+                        .setHostName(Main.hostName)
+                        .setPort(Main.port_sdfs)
+                        .setFile(FileOuterClass.File.newBuilder().setFileName(fileName).setVersion(String.valueOf(1)))
+                        .build()
+        );
+        return true;
+    }
+
+    private boolean waiting4NodeList() {
+        int cnt = 0;
+        while (Main.nodeList == null && cnt < MAX_SLEEPING_CYCLE) {
+            try {
+                Thread.sleep(SLEEPING_INTERVAL);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            cnt++;
+        }
+        return Main.nodeList == null || Main.nodeList.size() == 0;
     }
 }

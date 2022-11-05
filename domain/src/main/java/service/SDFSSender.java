@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 public class SDFSSender extends Thread {
     private final String hostName;
@@ -18,6 +19,8 @@ public class SDFSSender extends Thread {
     private Message message = null;
     private String localFileName = null;
     private String sdfsFileName = null;
+
+    private Socket socket;
 
     public SDFSSender(String hostName, int port, Message message) {
         this.hostName = hostName;
@@ -49,7 +52,14 @@ public class SDFSSender extends Thread {
         DataOutputStream outputStream = new DataOutputStream(toServer);
         if (this.message != null) {
             try {
-                outputStream.writeUTF(String.valueOf(this.message));
+                System.out.println("[MESSAGE] send out: " + message);
+                byte[] temp = this.message.toByteArray();
+                outputStream.write(temp);
+                try {
+                    socket.shutdownOutput();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 return;
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -62,6 +72,7 @@ public class SDFSSender extends Thread {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        System.out.println(Arrays.toString(contents));
         try {
             outputStream.writeUTF(String.valueOf(
                     Message.newBuilder()
