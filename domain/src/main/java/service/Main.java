@@ -13,6 +13,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -187,7 +188,10 @@ public class Main {
                     main.getRequest(file, version);
                     break;
                 default:
-                    LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, "Wrong command, please re-input");
+                    if (Pattern.compile("[a-z]").matcher(command).matches()) {
+                        LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, "Wrong command, please re-input");
+                        System.out.println(command);
+                    }
             }
         }
         main.join();
@@ -270,10 +274,11 @@ public class Main {
             }
         }
         boolean isLargest = true;
+        Main.leader = Main.hostName;
         for (Process process : membershipList) {
-            if (process.getAddress().compareTo(Main.hostName) > 0) {
+            if (process.getAddress().compareTo(Main.hostName) > 0 && process.getStatus() == ProcessStatus.ALIVE) {
                 isLargest = false;
-                break;
+                Main.leader = process.getAddress();
             }
         }
         if (isLargest) {
