@@ -5,6 +5,7 @@ import core.Process;
 import dns.DNS;
 import grep.client.Client;
 import grep.server.Server;
+import utils.EmptyDirectory;
 import utils.LeaderFunction;
 import utils.LogGenerator;
 
@@ -297,8 +298,8 @@ public class Main {
                         .build(),
                 true
         );
-
-        // TODO: delete files in sdfsDirectory
+        // delete files in sdfsDirectory
+        EmptyDirectory.execute(Main.sdfsDirectory);
         Main.storageList = new HashMap<>();
         LogGenerator.loggingInfo(LogGenerator.LogType.JOIN, "Joined the group!");
     }
