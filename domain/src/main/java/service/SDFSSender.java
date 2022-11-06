@@ -62,12 +62,6 @@ public class SDFSSender extends Thread {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        }else{
-            try {
-                LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "Message is NULL!");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
         // read local file into message and flush to TCP socket
         byte[] contents;

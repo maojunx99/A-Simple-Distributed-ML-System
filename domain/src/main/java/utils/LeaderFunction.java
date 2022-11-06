@@ -33,11 +33,11 @@ public class LeaderFunction {
                 }
             }
         }
-        if (aliveCnt < 2) {
+        if (aliveCnt < Main.copies) {
             LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, "No enough nodes in the group!");
             return list;
         }
-        while (list.size() < 2) {
+        while (list.size() < Main.copies) {
             System.out.println(list.size());
             if (Main.membershipList.get(index).getStatus() == ProcessStatus.ALIVE && !isSelected[index] && r.nextBoolean()) {
                 list.add(Main.membershipList.get(index).getAddress());
