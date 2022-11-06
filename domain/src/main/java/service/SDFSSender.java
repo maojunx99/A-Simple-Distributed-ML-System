@@ -52,8 +52,9 @@ public class SDFSSender extends Thread {
             try {
                 LogGenerator.loggingInfo(LogGenerator.LogType.SEND,  message.getHostName() +
                         " sends " + message.getFile().getFileName() + " to " + hostName);
-                byte[] temp = this.message.toByteArray();
-                outputStream.write(temp);
+//                byte[] temp = this.message.toByteArray();
+//                outputStream.write(temp);
+                this.message.writeTo(outputStream);
                 try {
                     socket.shutdownOutput();
                 } catch (IOException e) {
@@ -88,7 +89,8 @@ public class SDFSSender extends Thread {
             throw new RuntimeException(e);
         }
         try {
-            outputStream.write(message1.toByteArray());
+//            outputStream.write(message1.toByteArray());
+            message1.writeTo(outputStream);
             try {
                 socket.shutdownOutput();
             } catch (IOException e) {

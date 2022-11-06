@@ -101,7 +101,8 @@ public class SDFSReceiver extends Thread {
                         if (!file.exists()) {
                             if (file.createNewFile()) {
                                 FileOutputStream fileOutputStream = new FileOutputStream(file);
-                                fileOutputStream.write(message.getFile().getContent().toByteArray());
+                                message.getFile().getContent().writeTo(fileOutputStream);
+//                                fileOutputStream.write(message.getFile().getContent().toByteArray());
                             } else {
                                 LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "Failed to create file: " + filepath);
                             }
@@ -246,7 +247,7 @@ public class SDFSReceiver extends Thread {
                         if (!readFile.exists()) {
                             if (readFile.createNewFile()) {
                                 FileOutputStream fileOutputStream = new FileOutputStream(readFile);
-                                fileOutputStream.write(message.getFile().getContent().toByteArray());
+                                message.getFile().getContent().writeTo(fileOutputStream);
                             } else {
                                 LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "File already exists: " + readFile);
                             }
