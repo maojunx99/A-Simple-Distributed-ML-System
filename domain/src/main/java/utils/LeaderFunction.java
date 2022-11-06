@@ -1,8 +1,9 @@
 package utils;
 
+import core.*;
 import core.Process;
-import core.ProcessStatus;
 import service.Main;
+import service.Sender;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,5 +47,43 @@ public class LeaderFunction {
         }
         Main.totalStorage.put(sdfsFileName, list);
         return list;
+    }
+
+    public static void reReplica(String address) throws IOException {
+        for (String file : Main.totalStorage.keySet()) {
+            List<String> nodeList = Main.totalStorage.get(file);
+            if (nodeList.contains(address)) {
+                nodeList.remove(address);
+                String backupAddress = LeaderFunction.getDataNodeToStoreFile(file, nodeList);
+                for (int i = 0; i < Main.R; i++) {
+                    Sender.sendSDFS(nodeList.get(i), Main.port_sdfs,
+                            Message.newBuilder()
+                                    .setHostName(backupAddress)
+                                    .setPort(Main.port_sdfs)
+                                    .setCommand(Command.DOWNLOAD)
+                                    .setFile(FileOuterClass.File.newBuilder().setFileName(file).setVersion("1").build())
+                                    .build()
+                    );
+                }
+                nodeList.add(backupAddress);
+                Main.totalStorage.put(file, nodeList);
+            }
+        }
+    }
+
+    private static String getDataNodeToStoreFile(String file, List<String> nodeList) throws IOException {
+        int cnt = 0;
+        for (Process process : Main.membershipList) {
+            if (process.getStatus() == ProcessStatus.ALIVE) {
+                if (!nodeList.contains(process.getAddress())) {
+                    return process.getAddress();
+                }
+                cnt++;
+            }
+        }
+        if (cnt < Main.copies) {
+            LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, "No enough data nodes to re-replica file " + file);
+        }
+        return "";
     }
 }

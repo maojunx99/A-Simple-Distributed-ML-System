@@ -14,7 +14,7 @@ import java.util.List;
  * used by monitor and receiver
  */
 public class MemberListUpdater {
-    public static boolean update(Message message){
+    public static boolean update(Message message) throws IOException {
         Command command = message.getCommand();
         if(command == Command.ACK){
             for(int i = 0;i < Main.membershipList.size();i++){
@@ -103,7 +103,7 @@ public class MemberListUpdater {
 //                .setTimestamp(String.valueOf(Instant.now().getEpochSecond())).build());
 //    }
 
-    synchronized public static boolean updateMemberList(Message message){
+    synchronized public static boolean updateMemberList(Message message) throws IOException {
         List<Process> newMembershipList = message.getMembershipList();
         //curMembershipList : membershipList on current node
         //newMembershipList : membershipList on input message
@@ -137,6 +137,10 @@ public class MemberListUpdater {
                                 );
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
+                            }
+                            // if this is leader, then re-replica files on this machine
+                            if(Main.isLeader){
+                                LeaderFunction.reReplica(curProcess.getAddress());
                             }
                         }
                         try {

@@ -42,7 +42,7 @@ public class Main {
 
     public static int copies;
 
-    static boolean isLeader = false;
+    public static boolean isLeader = false;
 
     public static List<Process> nodeList = null;
 
@@ -58,6 +58,10 @@ public class Main {
     public static int READ_ACK = 0;
 
     public static int WRITE_ACK = 0;
+
+    public static int R;
+
+    public static int W;
 
 
     static {
@@ -83,6 +87,8 @@ public class Main {
         localDirectory = properties.getProperty("local_directory");
         sdfsDirectory = properties.getProperty("sdfs_directory");
         copies = Integer.parseInt(properties.getProperty("copies"));
+        R = Integer.parseInt(properties.getProperty("read"));
+        W = Integer.parseInt(properties.getProperty("write"));
         Instant time = Instant.now();
         timestamp = String.valueOf(time.getEpochSecond());
         membershipList = new ArrayList<>();
@@ -96,6 +102,8 @@ public class Main {
         introducer = DNS.getIntroducer();
         totalStorage = new HashMap<>();
         storageList = new HashMap<>();
+
+
         Thread receiver = new Thread(new Receiver());
         receiver.start();
         Thread monitor = new Thread(new Monitor());
@@ -284,6 +292,9 @@ public class Main {
                         .build(),
                 true
         );
+
+        // TODO: delete files in sdfsDirectory
+        Main.storageList = new HashMap<>();
         LogGenerator.loggingInfo(LogGenerator.LogType.JOIN, "Joined the group!");
     }
 

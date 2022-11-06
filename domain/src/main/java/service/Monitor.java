@@ -4,6 +4,7 @@ import core.Command;
 import core.Message;
 import core.Process;
 import core.ProcessStatus;
+import utils.LeaderFunction;
 import utils.LogGenerator;
 import utils.NeighborFilter;
 
@@ -91,6 +92,14 @@ public class Monitor extends Thread{
                                         .setTimestamp(String.valueOf(Instant.now().getEpochSecond()))
                                         .setAddress(target.getAddress())
                                         .setPort(target.getPort()).build());
+                                // TODO: if this is the leader, then re-replica files on this machine
+                                if(Main.isLeader){
+                                    try {
+                                        LeaderFunction.reReplica(Main.membershipList.get(i).getAddress());
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
                             }
                         }
                         System.out.println("[CRASH] " + Main.hostName + "@" + Main.timestamp + " detected a crash on "

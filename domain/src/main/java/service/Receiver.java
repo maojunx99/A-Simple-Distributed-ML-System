@@ -4,6 +4,7 @@ import core.Command;
 import core.Message;
 import core.Process;
 import core.ProcessStatus;
+import utils.LeaderFunction;
 import utils.LogGenerator;
 import utils.MemberListUpdater;
 import utils.NeighborFilter;
@@ -77,7 +78,11 @@ public class Receiver extends Thread {
             }
             switch (this.message.getCommand()) {
                 case LEAVE:
-                    MemberListUpdater.update(message);
+                    try {
+                        MemberListUpdater.update(message);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                     Sender.send(Message.newBuilder()
                                     .setHostName(Main.hostName)
                                     .setPort(Main.port_membership)
@@ -87,6 +92,13 @@ public class Receiver extends Thread {
                                     .build(),
                             true
                     );
+                    if(Main.isLeader){
+                        try {
+                            LeaderFunction.reReplica(this.message.getHostName());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                     break;
                 case WELCOME:
                     // update membership list
@@ -128,9 +140,13 @@ public class Receiver extends Thread {
                     break;
                 case UPDATE:
                     // update membershipList according to message's membership list
-                    if (MemberListUpdater.update(message)) {
-                        Sender.send(Message.newBuilder().setHostName(Main.hostName).setTimestamp(Main.timestamp).setPort(Main.port_membership)
-                                .addAllMembership(Main.membershipList).setCommand(Command.UPDATE).build(), true);
+                    try {
+                        if (MemberListUpdater.update(message)) {
+                            Sender.send(Message.newBuilder().setHostName(Main.hostName).setTimestamp(Main.timestamp).setPort(Main.port_membership)
+                                    .addAllMembership(Main.membershipList).setCommand(Command.UPDATE).build(), true);
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
                     break;
                 case DISPLAY:
@@ -138,7 +154,11 @@ public class Receiver extends Thread {
                     break;
                 case JOIN:
                     // add this to membershipList and response with WELCOME message
-                    MemberListUpdater.update(message);
+                    try {
+                        MemberListUpdater.update(message);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                     Sender.send(
                             message.getHostName(),
                             (int) message.getPort(),
