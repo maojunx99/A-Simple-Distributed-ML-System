@@ -4,6 +4,7 @@ import com.google.protobuf.ByteString;
 import core.*;
 import core.Process;
 import utils.LeaderFunction;
+import utils.MyReader;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -12,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -39,10 +41,10 @@ public class SDFSReceiver extends Thread {
     }
 
     @Override
-    public void run(){
+    public void run() {
         Socket socket;
         try {
-            while(true){
+            while (true) {
                 socket = receiverSocket.accept();
                 threadPoolExecutor.execute(new Executor(socket));
             }
@@ -54,59 +56,55 @@ public class SDFSReceiver extends Thread {
     static class Executor extends Thread {
         Message message;
         Socket socket;
+
         public Executor(Socket socket) throws IOException {
             this.socket = socket;
             InputStream inputStream = socket.getInputStream();
-            DataInputStream in = new DataInputStream(inputStream);
-            int len = in.available();
-            byte[] temp = new byte[len];
-            this.message = Message.parseFrom(temp);
+            this.message = Message.parseFrom(MyReader.read(inputStream));
+            inputStream.close();
         }
 
         @Override
         public void run() {
             // if this process has left the group, then ignore all packages
-            for (Process process: Main.membershipList) {
-                if(process.getAddress().equals(Main.hostName)&&process.getStatus()==ProcessStatus.LEAVED){
+            for (Process process : Main.membershipList) {
+                if (process.getAddress().equals(Main.hostName) && process.getStatus() == ProcessStatus.LEAVED) {
                     return;
-                }else{
+                } else {
                     break;
                 }
             }
-            if(this.message.getCommand() != Command.PING && this.message.getCommand() != Command.ACK){
-                System.out.println("[MESSAGE] get " + this.message.getCommand() + " command from "
-                        + this.message.getHostName() + "@" + this.message.getTimestamp());
-            }
             String fileName = null;
-            if(message.hasFile()){
+            if (message.hasFile()) {
                 fileName = message.getFile().getFileName();
             }
+            System.out.println("[MESSAGE] receive message: \n" + message);
             switch (this.message.getCommand()) {
                 case UPLOAD:
-                    if(fileName == null){
+                    if (fileName == null) {
                         System.out.println("[ERROR] Nothing to upload!");
                         break;
                     }
                     int version = Main.storageList.getOrDefault(fileName, 0) + 1;
                     Main.storageList.put(fileName, version);
                     int index = fileName.lastIndexOf(".");
-                    String filepath = Main.sdfsDirectory + fileName.substring(0,index) + "@" + version + "." + fileName.substring(index + 1);
+                    String filepath = Main.sdfsDirectory + fileName.substring(0, index) + "@" + version + "." + fileName.substring(index + 1);
                     File file = new File(filepath);
                     try {
-                        if(!file.exists()) {
-                            if(file.createNewFile()){
+                        if (!file.exists()) {
+                            if (file.createNewFile()) {
                                 FileOutputStream fileOutputStream = new FileOutputStream(file);
                                 fileOutputStream.write(message.getFile().getContent().toByteArray());
-                            }else{
+                            } else {
                                 System.out.println("[ERROR] Failed to create file: " + filepath);
                             }
                         }
-                    }catch (IOException e){
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
                     Sender.sendSDFS(
                             message.getHostName(),
-                            (int)message.getPort(),
+                            (int) message.getPort(),
                             Message.newBuilder()
                                     .setCommand(Command.WRITE_ACK)
                                     .setHostName(Main.hostName)
@@ -116,22 +114,21 @@ public class SDFSReceiver extends Thread {
                     );
                     break;
                 case UPLOAD_REQUEST:
-                    if(!Main.isLeader){
+                    if (!Main.isLeader) {
                         return;
                     }
-                    if(fileName == null){
+                    if (fileName == null) {
                         System.out.println("[ERROR] Nothing to upload!");
                         break;
                     }
                     List<String> dataNodeList = LeaderFunction.getDataNodesToStoreFile(fileName);
                     List<Process> dataNodeMemberList = new ArrayList<>();
-                    for(String dataNode : dataNodeList){
-                        Main.totalStorage.get(fileName).add(dataNode);
+                    for (String dataNode : dataNodeList) {
                         dataNodeMemberList.add(Process.newBuilder().setAddress(dataNode).build());
                     }
                     Sender.sendSDFS(
                             message.getHostName(),
-                            (int)message.getPort(),
+                            (int) message.getPort(),
                             Message.newBuilder()
                                     .setCommand(Command.REPLY)
                                     .setHostName(Main.hostName)
@@ -142,62 +139,59 @@ public class SDFSReceiver extends Thread {
                     );
                     break;
                 case DOWNLOAD:
-                    if(fileName == null){
+                    if (fileName == null) {
                         System.out.println("[ERROR] Nothing to download!");
                         break;
                     }
-                    if(!Main.storageList.containsKey(fileName)){
+                    if (!Main.storageList.containsKey(fileName)) {
                         System.out.println("[ERROR] Can not find download file!");
                         break;
                     }
-                    int latesetVerison = Main.storageList.get(fileName);
+                    int latestVersion = Main.storageList.get(fileName);
                     String downloadPath = Main.sdfsDirectory + fileName;
                     int dotIndex = downloadPath.lastIndexOf(".");
-                    downloadPath = downloadPath.substring(0, dotIndex) + "@" + latesetVerison + downloadPath.substring(dotIndex);
+                    downloadPath = downloadPath.substring(0, dotIndex) + "@" + latestVersion + downloadPath.substring(dotIndex);
+                    fileName = downloadPath.substring(Main.sdfsDirectory.length());
                     File downloadFile = new File(downloadPath);
                     byte[] fileData = null;
                     try {
-                        if(!downloadFile.exists()) {
+                        if (!downloadFile.exists()) {
                             System.out.println("[ERROR] Failed to find file: " + downloadPath);
-                        }else{
+                        } else {
                             FileInputStream fileInputStream = new FileInputStream(downloadFile);
-                            int len = fileInputStream.available();
-                            fileData = new byte[len];
-                            int readAck = fileInputStream.read(fileData);
-                            if(readAck != len){
-                                System.out.println("[ERROR] Errors in reading file " + downloadPath + " !");
-                            }
+                            fileData = MyReader.read(fileInputStream);
                         }
-                    }catch (IOException e){
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
+                    Message message2 = Message.newBuilder()
+                            .setCommand(Command.READ_ACK)
+                            .setHostName(Main.hostName)
+                            .setTimestamp(Main.timestamp)
+                            .setPort(Main.port_sdfs)
+                            .setFile(FileOuterClass.File.newBuilder()
+                                    .setFileName(fileName).setContent(ByteString.copyFrom(fileData)).build())
+                            .build();
                     Sender.sendSDFS(
                             message.getHostName(),
-                            (int)message.getPort(),
-                            Message.newBuilder()
-                                    .setCommand(Command.WRITE_ACK)
-                                    .setHostName(Main.hostName)
-                                    .setTimestamp(Main.timestamp)
-                                    .setPort(Main.port_sdfs)
-                                    .setFile(FileOuterClass.File.newBuilder()
-                                            .setFileName(fileName).setContent(ByteString.copyFrom(fileData)).build())
-                                    .build()
+                            (int) message.getPort(),
+                            message2
                     );
                     break;
                 case DOWNLOAD_REQUEST:
-                    if(!Main.isLeader){
+                    if (!Main.isLeader) {
                         return;
                     }
-                    if(!Main.totalStorage.containsKey(fileName)){
+                    if (!Main.totalStorage.containsKey(fileName)) {
                         System.out.println("[INFO] Target file does not exit in SDFS: " + fileName);
                     }
                     List<Process> tempList = new ArrayList<>();
-                    for(String i : Main.totalStorage.get(fileName)){
+                    for (String i : Main.totalStorage.get(fileName)) {
                         tempList.add(Process.newBuilder().setAddress(i).build());
                     }
                     Sender.sendSDFS(
                             message.getHostName(),
-                            (int)message.getPort(),
+                            (int) message.getPort(),
                             Message.newBuilder()
                                     .setCommand(Command.REPLY)
                                     .setHostName(Main.hostName)
@@ -211,21 +205,21 @@ public class SDFSReceiver extends Thread {
                     String savePath = Main.localDirectory + message.getFile().getFileName();
                     File readFile = new File(savePath);
                     try {
-                        if(!readFile.exists()) {
-                            if(readFile.createNewFile()){
+                        if (!readFile.exists()) {
+                            if (readFile.createNewFile()) {
                                 FileOutputStream fileOutputStream = new FileOutputStream(readFile);
                                 fileOutputStream.write(message.getFile().getContent().toByteArray());
-                            }else{
+                            } else {
                                 System.out.println("[INFO] File already exists: " + readFile);
                             }
                         }
-                    }catch (IOException e){
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    Main.READ_ACK ++;
+                    Main.READ_ACK++;
                     break;
                 case WRITE_ACK:
-                    Main.WRITE_ACK ++;
+                    Main.WRITE_ACK++;
                     break;
                 case DELETE:
                     String deleteName = message.getMeta();
@@ -245,14 +239,14 @@ public class SDFSReceiver extends Thread {
                     }
                     break;
                 case DELETE_REQUEST:
-                    if(!Main.isLeader){
+                    if (!Main.isLeader) {
                         return;
                     }
                     List<String> deleteList = Main.totalStorage.get(fileName);
-                    for(String i : deleteList){
+                    for (String i : deleteList) {
                         Sender.sendSDFS(
                                 i,
-                                (int)message.getPort(),
+                                (int) message.getPort(),
                                 Message.newBuilder()
                                         .setCommand(Command.DELETE)
                                         .setHostName(Main.hostName)
