@@ -9,7 +9,9 @@ import utils.MyReader;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -220,6 +222,21 @@ public class SDFSReceiver extends Thread {
                     Main.WRITE_ACK++;
                     break;
                 case DELETE:
+                    String deleteName = message.getMeta();
+                    int temp = deleteName.lastIndexOf(".");
+                    int newestVersion = Main.storageList.get(deleteName);
+                    deleteName = deleteName.substring(0, temp) + "@" + String.valueOf(newestVersion) + deleteName.substring(temp);
+                    for(int i = 1; i <= newestVersion; i++){
+                        try {
+                            boolean isDelete = Files.deleteIfExists(Paths.get(Main.sdfsDirectory, deleteName));
+                            if(!isDelete){
+                                System.out.println("[WARN] " + deleteName + "does not exist!");
+                            }
+                            System.out.println("[INFO] Successfully delete" + deleteName);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                     break;
                 case DELETE_REQUEST:
                     if (!Main.isLeader) {
