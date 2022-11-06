@@ -156,7 +156,7 @@ public class Main {
                     break;
                 case "delete":
                     String filename = scanner.next();
-                    if(main.deleteFile(filename)){
+                    if(main.deleteRequest(filename)){
                         System.out.println("[INFO] Delete success!");
                     }else{
                         System.out.println("[INFO] Delete aborted!");
@@ -406,51 +406,6 @@ public class Main {
         return true;
     }
 
-    private boolean deleteFile(String fileName){
-        // - is leader
-        //   - find which nodes store the file
-        //   - inform these nodes to delete all versions of the certain file
-        // - isn't leader
-        //   - send get request to the leader
-        if(Main.isLeader){
-            Main.nodeList = LeaderFunction.getDataNodesToStoreFile(fileName)
-                    .stream()
-                    .map(
-                            (address) -> Process.newBuilder()
-                                    .setAddress(address)
-                                    .setPort(Main.port_sdfs)
-                                    .build()
-                    )
-                    .collect(Collectors.toList());
-        }else{
-            if(!deleteRequest(fileName)){
-                return false;
-            }
-        }
-        if (waiting4NodeList()) {
-            System.out.println("[WARNING] Haven't got the node list from leader!");
-            return false;
-        }
-        System.out.println("[INFO] Got the node list from leader!");
-
-        for (Process process : Main.nodeList) {
-            Sender.sendSDFS(
-                    process.getAddress(),
-                    port_sdfs,
-                    Message.newBuilder()
-                            .setHostName(Main.hostName)
-                            .setPort(port_sdfs)
-                            .setCommand(Command.DELETE)
-                            .setFile(FileOuterClass.File.newBuilder()
-                                    .setFileName(fileName)
-                                    .setVersion(String.valueOf(1)))
-                            .build()
-            );
-        }
-        Main.nodeList = null;
-        return true;
-    }
-
     private boolean deleteRequest(String fileName){
         if(leader == null){
             System.out.println("[WARNING] No leader currently! Please wait for a while and try again later!");
@@ -462,7 +417,7 @@ public class Main {
                         .setCommand(Command.DELETE_REQUEST)
                         .setHostName(Main.hostName)
                         .setPort(Main.port_sdfs)
-                        .setFile(FileOuterClass.File.newBuilder().setFileName(fileName))
+                        .setFile(FileOuterClass.File.newBuilder().setFileName(fileName).build())
                         .build()
         );
         return true;

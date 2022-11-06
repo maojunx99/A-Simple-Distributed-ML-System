@@ -220,7 +220,7 @@ public class SDFSReceiver extends Thread {
                     Main.WRITE_ACK++;
                     break;
                 case DELETE:
-                    String deleteName = message.getMeta();
+                    String deleteName = message.getFile().getFileName();
                     int temp = deleteName.lastIndexOf(".");
                     int newestVersion = Main.storageList.get(deleteName);
                     deleteName = deleteName.substring(0, temp) + "@" + newestVersion + deleteName.substring(temp);
@@ -230,7 +230,7 @@ public class SDFSReceiver extends Thread {
                             if(!isDelete){
                                 System.out.println("[WARN] " + deleteName + "does not exist!");
                             }
-                            System.out.println("[INFO] Successfully delete" + deleteName);
+                            System.out.println("[INFO] Successfully delete " + deleteName);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }

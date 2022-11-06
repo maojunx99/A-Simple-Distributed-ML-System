@@ -25,15 +25,9 @@ public class IntroducerChecker extends Thread {
         while (true) {
             if (Main.isLeader) {
                 for (Process process : Main.membershipList) {
-                    System.out.println("[INFO] Checking " + process.getAddress());
                     if (process.getAddress().equals(Main.introducer)) {
-                        System.out.println("[INFO] Introducer is " + process.getAddress());
                         if (process.getStatus() != ProcessStatus.ALIVE) {
-                            System.out.println("[ERROR] Introducer is down!");
-                            System.out.println("[INFO] Start changing the introducer...");
                             this.updateIntroducer();
-                            System.out.println("[INFO] New Introducer in main is " + Main.introducer);
-                            System.out.println("[INFO] Actual Introducer in dns is " + DNS.getIntroducer());
                         }
                         break;
                     }
@@ -59,7 +53,6 @@ public class IntroducerChecker extends Thread {
             }
         }
         if (!exist) {
-            System.out.println("[INFO] No other process can become introducer, leader become the introducer.");
             Sender.broadcastNewIntroducer(Main.hostName);
         }
     }
