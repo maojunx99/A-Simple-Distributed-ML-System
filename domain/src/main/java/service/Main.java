@@ -304,7 +304,7 @@ public class Main {
         LogGenerator.loggingInfo(LogGenerator.LogType.JOIN, "Joined the group!");
     }
 
-    private boolean uploadFile(String localFileName, String sdfsFileName) throws IOException {
+    private boolean uploadFile(String localFileName, String sdfsFileName) throws IOException, InterruptedException {
         // - is leader
         //   - decide which nodes store the file (may include leader itself)
         //   - send UPLOAD message to these nodes
@@ -335,6 +335,10 @@ public class Main {
         for (Process process : Main.nodeList) {
             Sender.sendFile(process.getAddress(), Main.port_sdfs, localFileName, sdfsFileName);
         }
+        while(Main.WRITE_ACK < Main.W){
+            Thread.sleep(1000);
+        }
+        Main.WRITE_ACK = 0;
         Main.nodeList = null;
         return true;
     }
@@ -355,7 +359,7 @@ public class Main {
         return true;
     }
 
-    private boolean getFile(String fileName) throws IOException {
+    private boolean getFile(String fileName) throws IOException, InterruptedException {
         // - is leader
         //   - find which nodes store the file
         // - isn't leader
@@ -399,6 +403,10 @@ public class Main {
                             .build()
             );
         }
+        while(Main.READ_ACK < Main.R){
+            Thread.sleep(1000);
+        }
+        Main.READ_ACK = 0;
         Main.nodeList = null;
         return true;
     }
