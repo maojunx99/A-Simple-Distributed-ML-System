@@ -8,6 +8,9 @@ import utils.LeaderFunction;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -87,7 +90,7 @@ public class SDFSReceiver extends Thread {
                     int version = Main.storageList.getOrDefault(fileName, 0) + 1;
                     Main.storageList.put(fileName, version);
                     int index = fileName.lastIndexOf(".");
-                    String filepath = Main.sdfsDirectory + fileName.substring(0,index) + "@" + version + "." + fileName.substring(index+1);
+                    String filepath = Main.sdfsDirectory + fileName.substring(0,index) + "@" + version + "." + fileName.substring(index + 1);
                     File file = new File(filepath);
                     try {
                         if(!file.exists()) {
@@ -168,7 +171,7 @@ public class SDFSReceiver extends Thread {
                     }catch (IOException e){
                         e.printStackTrace();
                     }
-                    Sender.send(
+                    Sender.sendSDFS(
                             message.getHostName(),
                             (int)message.getPort(),
                             Message.newBuilder()
@@ -225,6 +228,21 @@ public class SDFSReceiver extends Thread {
                     Main.WRITE_ACK ++;
                     break;
                 case DELETE:
+                    String deleteName = message.getMeta();
+                    int temp = deleteName.lastIndexOf(".");
+                    int newestVersion = Main.storageList.get(deleteName);
+                    deleteName = deleteName.substring(0, temp) + "@" + String.valueOf(newestVersion) + deleteName.substring(temp);
+                    for(int i = 1; i <= newestVersion; i++){
+                        try {
+                            boolean isDelete = Files.deleteIfExists(Paths.get(Main.sdfsDirectory, deleteName));
+                            if(!isDelete){
+                                System.out.println("[WARN] " + deleteName + "does not exist!");
+                            }
+                            System.out.println("[INFO] Successfully delete" + deleteName);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                     break;
                 case DELETE_REQUEST:
                     if(!Main.isLeader){
