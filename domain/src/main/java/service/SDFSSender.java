@@ -50,7 +50,8 @@ public class SDFSSender extends Thread {
         DataOutputStream outputStream = new DataOutputStream(toServer);
         if (this.message != null) {
             try {
-                LogGenerator.loggingInfo(LogGenerator.LogType.SEND, "\n" + message);
+                LogGenerator.loggingInfo(LogGenerator.LogType.SEND,  message.getHostName() +
+                        " sends " + message.getFile().getFileName() + " to " + hostName);
                 byte[] temp = this.message.toByteArray();
                 outputStream.write(temp);
                 try {
@@ -81,7 +82,8 @@ public class SDFSSender extends Thread {
                 )
                 .build();
         try {
-            LogGenerator.loggingInfo(LogGenerator.LogType.SEND, "\n" + message1);
+            LogGenerator.loggingInfo(LogGenerator.LogType.SEND,  message1.getHostName() +
+                    " sends " + message1.getFile().getFileName() + " to " + hostName);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

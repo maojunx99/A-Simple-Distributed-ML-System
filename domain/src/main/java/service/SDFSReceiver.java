@@ -77,7 +77,8 @@ public class SDFSReceiver extends Thread {
                 fileName = message.getFile().getFileName();
             }
             try {
-                LogGenerator.loggingInfo(LogGenerator.LogType.RECEIVING, "\n" + message);
+                LogGenerator.loggingInfo(LogGenerator.LogType.RECEIVING,
+                        "Got " + message.getFile().getFileName() + " from " + message.getHostName());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
