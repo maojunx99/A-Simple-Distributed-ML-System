@@ -17,31 +17,33 @@ import java.util.List;
 /**
  * To monitor neighbors, periodically check whether anyone of them crash
  */
-public class Monitor extends Thread{
+public class Monitor extends Thread {
     private final List<DatagramPacket> datagramPacketList = new ArrayList<>();
     private final DatagramSocket datagramSocket;
-    boolean [] isAck;
+    boolean[] isAck;
+
     public Monitor() throws SocketException {
         this.isAck = Main.isAck;
         this.datagramSocket = new DatagramSocket();
     }
+
     @Override
-    public void run(){
+    public void run() {
         // initialize Sockets of neighbors
-        while(true){
-            synchronized (Monitor.class){
-                for(int j = 0; j < 4; j ++){
+        while (true) {
+            synchronized (Monitor.class) {
+                for (int j = 0; j < 4; j++) {
                     isAck[j] = false;
                 }
                 // ping 4 neighbors every 1 s
                 List<Process> neighbors = NeighborFilter.getNeighbors();
                 Main.timestamp = Instant.now().getEpochSecond() + "";
-                for(Process process : neighbors){
+                for (Process process : neighbors) {
                     Message message = Message.newBuilder().setHostName(Main.hostName)
-                                        .setPort(Main.port_membership)
-                                        .setCommand(Command.PING)
-                                        .setTimestamp(Main.timestamp)
-                                        .addAllMembership(Main.membershipList).build();
+                            .setPort(Main.port_membership)
+                            .setCommand(Command.PING)
+                            .setTimestamp(Main.timestamp)
+                            .addAllMembership(Main.membershipList).build();
                     byte[] data = message.toByteArray();
                     String address = process.getAddress();
                     long port = process.getPort();
@@ -54,46 +56,61 @@ public class Monitor extends Thread{
                     }
                     datagramPacketList.add(packet);
                 }
-                for(DatagramPacket datagramPacket : datagramPacketList){
+                for (DatagramPacket datagramPacket : datagramPacketList) {
                     try {
                         datagramSocket.send(datagramPacket);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 }
-                try {
-                    //wait for 1s
-                    Thread.sleep(Main.timeBeforeCrash);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
                 //check whether receive "ACK" from each neighbors
                 boolean hasCrash = false;
-                for(int k = 0; k < neighbors.size(); k ++){
-                    if(!isAck[k]){
+                int cnt = 0;
+                while (cnt < Main.timeBeforeCrash) {
+                    try {
+                        //wait for 1s
+                        Thread.sleep(1000);
+                        boolean allFine = true;
+                        for (int i = 0; i < isAck.length; i++) {
+                            if(!isAck[i]){
+                                allFine = false;
+                                break;
+                            }
+                        }
+                        if(allFine){
+                            break;
+                        }
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    cnt += 1000;
+                }
+
+                for (int k = 0; k < neighbors.size(); k++) {
+                    if (!isAck[k]) {
                         Process neighbor = neighbors.get(k);
                         boolean _continue = false;
-                        for (Process process: Main.membershipList) {
-                            if(process.getAddress().equals(neighbor.getAddress())){
-                                if(process.getStatus()!=ProcessStatus.ALIVE){
+                        for (Process process : Main.membershipList) {
+                            if (process.getAddress().equals(neighbor.getAddress())) {
+                                if (process.getStatus() != ProcessStatus.ALIVE) {
                                     _continue = true;
                                 }
                                 break;
                             }
                         }
-                        if(_continue)continue;
+                        if (_continue) continue;
                         hasCrash = true;
                         Process target = neighbors.get(k);
                         int length = Main.membershipList.size();
-                        for(int i = 0; i < length; i++){
-                            if(Main.membershipList.get(i).getAddress().equals(target.getAddress())){
+                        for (int i = 0; i < length; i++) {
+                            if (Main.membershipList.get(i).getAddress().equals(target.getAddress())) {
                                 Main.membershipList.set(i, Process.newBuilder()
                                         .setStatus(ProcessStatus.CRASHED)
                                         .setTimestamp(String.valueOf(Instant.now().getEpochSecond()))
                                         .setAddress(target.getAddress())
                                         .setPort(target.getPort()).build());
                                 // TODO: if this is the leader, then re-replica files on this machine
-                                if(Main.isLeader){
+                                if (Main.isLeader) {
                                     try {
                                         LeaderFunction.reReplica(Main.membershipList.get(i).getAddress());
                                     } catch (IOException e) {
@@ -112,7 +129,7 @@ public class Monitor extends Thread{
                         }
                     }
                 }
-                if(hasCrash){
+                if (hasCrash) {
                     //send update message to 4 neighbors
                     Message message = Message.newBuilder().setCommand(Command.UPDATE).setHostName(Main.hostName)
                             .setPort(Main.port_membership).setTimestamp(Main.timestamp).addAllMembership(Main.membershipList).build();
