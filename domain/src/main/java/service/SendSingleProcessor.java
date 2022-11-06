@@ -9,9 +9,9 @@ import java.net.InetAddress;
 import java.net.SocketException;
 
 public class SendSingleProcessor extends Thread{
-    public String hostName = null;
-    public int port = 0;
-    public Message message = null;
+    public String hostName;
+    public int port;
+    public Message message;
     SendSingleProcessor(String hostName, int port, Message message){
         this.hostName = hostName;
         this.port = port;
@@ -19,7 +19,7 @@ public class SendSingleProcessor extends Thread{
     }
     @Override
     public void run(){
-        DatagramSocket datagramSocket = null;
+        DatagramSocket datagramSocket;
         try {
             datagramSocket = new DatagramSocket();
         } catch (SocketException e) {
@@ -27,7 +27,7 @@ public class SendSingleProcessor extends Thread{
         }
         byte[] arr = message.toByteArray();
         try {
-            DatagramPacket packet = null;
+            DatagramPacket packet;
             packet = new DatagramPacket(arr, 0, arr.length,
                     InetAddress.getByName(hostName), port);
             datagramSocket.send(packet);

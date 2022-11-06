@@ -4,13 +4,14 @@ import core.Process;
 import core.ProcessStatus;
 import service.Main;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class LeaderFunction {
-    public static List<String> getDataNodesToStoreFile(String sdfsFileName) {
-        System.out.println("[INFO] Start find node list");
+    public static List<String> getDataNodesToStoreFile(String sdfsFileName) throws IOException {
+        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Start find node list");
         List<String> list = new ArrayList<>();
         if (Main.totalStorage.containsKey(sdfsFileName)) {
             return Main.totalStorage.get(sdfsFileName);
@@ -24,6 +25,7 @@ public class LeaderFunction {
             if (process.getStatus() == ProcessStatus.ALIVE) {
                 aliveCnt++;
                 if (r.nextBoolean()) {
+
                     System.out.println("[INFO] Add " + process.getAddress());
                     list.add(process.getAddress());
                     isSelected[i] = true;
@@ -31,7 +33,7 @@ public class LeaderFunction {
             }
         }
         if (aliveCnt < 2) {
-            System.out.println("[WARNING] No enough nodes in the group!");
+            LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, "No enough nodes in the group!");
             return list;
         }
         while (list.size() < 2) {

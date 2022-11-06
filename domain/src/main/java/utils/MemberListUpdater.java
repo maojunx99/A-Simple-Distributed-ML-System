@@ -23,7 +23,7 @@ public class MemberListUpdater {
                 if(p.getAddress().equals(message.getHostName())){
                     if(p.getStatus() == ProcessStatus.ALIVE){
                         try {
-                            LogGenerator.timestampLogging(p.getAddress(), p.getTimestamp(), message.getTimestamp());
+                            LogGenerator.loggingTimestamp(p.getAddress(), p.getTimestamp(), message.getTimestamp());
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -42,7 +42,7 @@ public class MemberListUpdater {
             insert(process);
             System.out.println("[INFO] " + message.getHostName() + "@" + message.getTimestamp() + " joins the membershipList");
             try {
-                LogGenerator.logging(LogGenerator.LogType.JOIN, message.getHostName(), message.getTimestamp(), ProcessStatus.ALIVE);
+                LogGenerator.loggingStatus(LogGenerator.LogType.JOIN, message.getHostName(), message.getTimestamp(), ProcessStatus.ALIVE);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -84,7 +84,7 @@ public class MemberListUpdater {
                 Main.membershipList.set(i, process.toBuilder().setStatus(ProcessStatus.LEAVED)
                         .setTimestamp(timestamp).build());
                 try {
-                    LogGenerator.logging(LogGenerator.LogType.LEAVE, hostname, timestamp, ProcessStatus.LEAVED);
+                    LogGenerator.loggingStatus(LogGenerator.LogType.LEAVE, hostname, timestamp, ProcessStatus.LEAVED);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -131,7 +131,7 @@ public class MemberListUpdater {
                         temp.setStatus(newProcess.getStatus());
                         if(newProcess.getStatus() == ProcessStatus.CRASHED){
                             try {
-                                LogGenerator.logging(LogGenerator.LogType.CRASH,
+                                LogGenerator.loggingCrashInfo(LogGenerator.LogType.CRASH,
                                         message.getHostName(), message.getTimestamp(),
                                         temp.getAddress(), temp.getTimestamp()
                                 );
@@ -140,7 +140,7 @@ public class MemberListUpdater {
                             }
                         }
                         try {
-                            LogGenerator.logging(LogGenerator.LogType.UPDATE, temp.getAddress(),
+                            LogGenerator.loggingStatus(LogGenerator.LogType.UPDATE, temp.getAddress(),
                                     temp.getTimestamp(), temp.getStatus());
                         } catch (IOException e) {
                             throw new RuntimeException(e);
@@ -151,7 +151,7 @@ public class MemberListUpdater {
                     System.out.println("[INFO] " + curProcess.getAddress() + "'s timestamp is updated in "
                     + Main.hostName + "'s membershipList");
                     try {
-                        LogGenerator.timestampLogging(curProcess.getAddress(), curTimeStamp, newTimeStamp);
+                        LogGenerator.loggingTimestamp(curProcess.getAddress(), curTimeStamp, newTimeStamp);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -174,7 +174,7 @@ public class MemberListUpdater {
         System.out.println("[INFO] " + process.getAddress() + "@" + process.getTimestamp() + " is added into "
                 + Main.hostName + "'s membershipList");
         try {
-            LogGenerator.logging(LogGenerator.LogType.JOIN, process.getAddress(), process.getTimestamp(), ProcessStatus.ALIVE);
+            LogGenerator.loggingStatus(LogGenerator.LogType.JOIN, process.getAddress(), process.getTimestamp(), ProcessStatus.ALIVE);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

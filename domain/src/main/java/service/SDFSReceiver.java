@@ -4,6 +4,7 @@ import com.google.protobuf.ByteString;
 import core.Process;
 import core.*;
 import utils.LeaderFunction;
+import utils.LogGenerator;
 import utils.MyReader;
 
 import java.io.*;
@@ -21,7 +22,6 @@ import java.util.concurrent.TimeUnit;
  * multi-threads receive messages from other processes
  */
 public class SDFSReceiver extends Thread {
-    //private final DatagramSocket datagramSocket;
     private static final int port = Main.port_sdfs;
     private static final int corePoolSize = 10;
     private final ServerSocket receiverSocket;
@@ -76,11 +76,19 @@ public class SDFSReceiver extends Thread {
             if (message.hasFile()) {
                 fileName = message.getFile().getFileName();
             }
-            System.out.println("[MESSAGE] receive message: \n" + message);
+            try {
+                LogGenerator.loggingInfo(LogGenerator.LogType.RECEIVING, "\n" + message);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             switch (this.message.getCommand()) {
                 case UPLOAD:
                     if (fileName == null) {
-                        System.out.println("[ERROR] Nothing to upload!");
+                        try {
+                            LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "Nothing to upload!");
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                         break;
                     }
                     int version = Main.storageList.getOrDefault(fileName, 0) + 1;
@@ -94,7 +102,7 @@ public class SDFSReceiver extends Thread {
                                 FileOutputStream fileOutputStream = new FileOutputStream(file);
                                 fileOutputStream.write(message.getFile().getContent().toByteArray());
                             } else {
-                                System.out.println("[ERROR] Failed to create file: " + filepath);
+                                LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "Failed to create file: " + filepath);
                             }
                         }
                     } catch (IOException e) {
@@ -116,10 +124,19 @@ public class SDFSReceiver extends Thread {
                         return;
                     }
                     if (fileName == null) {
-                        System.out.println("[ERROR] Nothing to upload!");
-                        break;
+                        try {
+                            LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "Nothing to upload!");
+                            return;
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
-                    List<String> dataNodeList = LeaderFunction.getDataNodesToStoreFile(fileName);
+                    List<String> dataNodeList;
+                    try {
+                        dataNodeList = LeaderFunction.getDataNodesToStoreFile(fileName);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                     List<Process> dataNodeMemberList = new ArrayList<>();
                     for (String dataNode : dataNodeList) {
                         dataNodeMemberList.add(Process.newBuilder().setAddress(dataNode).build());
@@ -138,25 +155,33 @@ public class SDFSReceiver extends Thread {
                     break;
                 case DOWNLOAD:
                     if (fileName == null) {
-                        System.out.println("[ERROR] Nothing to download!");
+                        try {
+                            LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "Nothing to download!");
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                         break;
                     }
                     if (!Main.storageList.containsKey(fileName)) {
-                        System.out.println("[ERROR] Can not find download file!");
+                        try {
+                            LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "Can not find download file!");
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                         break;
                     }
                     int latestVersion = Main.storageList.get(fileName);
                     String downloadPath = Main.sdfsDirectory + fileName;
                     int dotIndex = downloadPath.lastIndexOf(".");
                     int lastNumVersion = Integer.parseInt(message.getFile().getVersion());
-                    for(int i = 0; i < lastNumVersion; i++){
-                        downloadPath = downloadPath.substring(0, dotIndex) + "@" + (latestVersion - lastNumVersion) + downloadPath.substring(dotIndex);
+                    for (int i = 0; i < lastNumVersion; i++) {
+                        downloadPath = downloadPath.substring(0, dotIndex) + "@" + (latestVersion - i) + downloadPath.substring(dotIndex);
                         fileName = downloadPath.substring(Main.sdfsDirectory.length());
                         File downloadFile = new File(downloadPath);
                         byte[] fileData = null;
                         try {
                             if (!downloadFile.exists()) {
-                                System.out.println("[ERROR] Failed to find file: " + downloadPath);
+                                LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "Failed to find file: " + downloadPath);
                             } else {
                                 FileInputStream fileInputStream = new FileInputStream(downloadFile);
                                 fileData = MyReader.read(fileInputStream);
@@ -184,7 +209,11 @@ public class SDFSReceiver extends Thread {
                         return;
                     }
                     if (!Main.totalStorage.containsKey(fileName)) {
-                        System.out.println("[INFO] Target file does not exit in SDFS: " + fileName);
+                        try {
+                            LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Target file does not exit in SDFS: " + fileName);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                     List<Process> tempList = new ArrayList<>();
                     for (String i : Main.totalStorage.get(fileName)) {
@@ -211,7 +240,7 @@ public class SDFSReceiver extends Thread {
                                 FileOutputStream fileOutputStream = new FileOutputStream(readFile);
                                 fileOutputStream.write(message.getFile().getContent().toByteArray());
                             } else {
-                                System.out.println("[INFO] File already exists: " + readFile);
+                                LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "File already exists: " + readFile);
                             }
                         }
                     } catch (IOException e) {
@@ -227,13 +256,13 @@ public class SDFSReceiver extends Thread {
                     int temp = deleteName.lastIndexOf(".");
                     int newestVersion = Main.storageList.get(deleteName);
                     deleteName = deleteName.substring(0, temp) + "@" + newestVersion + deleteName.substring(temp);
-                    for(int i = 1; i <= newestVersion; i++){
+                    for (int i = 1; i <= newestVersion; i++) {
                         try {
                             boolean isDelete = Files.deleteIfExists(Paths.get(Main.sdfsDirectory, deleteName));
-                            if(!isDelete){
-                                System.out.println("[WARN] " + deleteName + "does not exist!");
+                            if (!isDelete) {
+                                LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, deleteName + "does not exist!");
                             }
-                            System.out.println("[INFO] Successfully delete " + deleteName);
+                            LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Successfully delete " + deleteName);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -264,7 +293,11 @@ public class SDFSReceiver extends Thread {
                     break;
                 case ELECTED:
                     Main.leader = message.getMeta();
-                    System.out.println("[INFO] Leader is " + Main.leader + " !");
+                    try {
+                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Leader is " + Main.leader + " !");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                     break;
                 default:
                     break;

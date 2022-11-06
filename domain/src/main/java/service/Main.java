@@ -6,6 +6,7 @@ import dns.DNS;
 import grep.client.Client;
 import grep.server.Server;
 import utils.LeaderFunction;
+import utils.LogGenerator;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -141,25 +142,25 @@ public class Main {
                     String localFileName = scanner.next();
                     String sdfsFileName = scanner.next();
                     if (main.uploadFile(localFileName, sdfsFileName)) {
-                        System.out.println("[INFO] Upload success!");
+                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, localFileName + " upload success!");
                     } else {
-                        System.out.println("[INFO] Upload aborted!");
+                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, localFileName + " upload aborted!");
                     }
                     break;
                 case "get":
                     String fileName = scanner.next();
                     if (main.getFile(fileName)) {
-                        System.out.println("[INFO] Download success!");
+                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, fileName + " download success!");
                     } else {
-                        System.out.println("[INFO] Download aborted!");
+                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, fileName + " download aborted!");
                     }
                     break;
                 case "delete":
                     String filename = scanner.next();
-                    if(main.deleteRequest(filename)){
-                        System.out.println("[INFO] Delete success!");
-                    }else{
-                        System.out.println("[INFO] Delete aborted!");
+                    if (main.deleteRequest(filename)) {
+                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, filename + " delete success!");
+                    } else {
+                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, filename + " delete aborted!");
                     }
                     break;
                 case "ls":
@@ -170,12 +171,15 @@ public class Main {
                     main.displayStore();
                     break;
                 case "get-version":
-                    // TODO: implement get versions of a file
-                    // - is leader
-                    // - isn't leader
+                    String file = scanner.next();
+                    int version = scanner.nextInt();
+                    if (version > 5) {
+                        LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "version cannot larger than 5");
+                    }
+                    main.getRequest(file, version);
                     break;
                 default:
-                    System.out.println("[WARNING] Wrong command, please re-input");
+                    LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, "Wrong command, please re-input");
             }
         }
         main.join();
@@ -208,7 +212,7 @@ public class Main {
         System.out.println("Self ID: " + hostName + "@" + timestamp);
     }
 
-    private void leave() {
+    private void leave() throws IOException {
         //call sender to inform others
         for (int i = 0; i < Main.membershipList.size(); i++) {
             Process process = Main.membershipList.get(i);
@@ -227,10 +231,10 @@ public class Main {
                         .build(),
                 true
         );
-        System.out.println("[INFO] Left the group!");
+        LogGenerator.loggingInfo(LogGenerator.LogType.LEAVE, "Left the group!");
     }
 
-    private void join() throws InterruptedException {
+    private void join() throws InterruptedException, IOException {
         //call introducer to get list
         timestamp = Instant.now().getEpochSecond() + "";
         Main.membershipList.set(0, Main.membershipList.get(0).toBuilder().setStatus(ProcessStatus.ALIVE).build());
@@ -251,7 +255,7 @@ public class Main {
             Thread.sleep(1000);
             cnt++;
             if (cnt > 5) {
-                System.out.println("[ERROR] the introducer is down!");
+                LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "the introducer is down!");
                 // no introducer then I become the introducer
                 Sender.broadcastNewIntroducer(Main.hostName);
                 return;
@@ -259,14 +263,13 @@ public class Main {
         }
         boolean isLargest = true;
         for (Process process : membershipList) {
-            System.out.println("[INFO] compare with process" + process.getAddress());
             if (process.getAddress().compareTo(Main.hostName) > 0) {
                 isLargest = false;
                 break;
             }
         }
         if (isLargest) {
-            System.out.println("[ELECTED] Send out ELECTED message: " + Main.hostName);
+            LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Send out ELECTED message: " + Main.hostName);
             // end out elected message to other processes
             Sender.electedNewLeaderAs(Main.hostName);
             isLeader = true;
@@ -281,10 +284,10 @@ public class Main {
                         .build(),
                 true
         );
-        System.out.println("[INFO] Joined into the group!");
+        LogGenerator.loggingInfo(LogGenerator.LogType.JOIN, "Joined the group!");
     }
 
-    private boolean uploadFile(String localFileName, String sdfsFileName) {
+    private boolean uploadFile(String localFileName, String sdfsFileName) throws IOException {
         // - is leader
         //   - decide which nodes store the file (may include leader itself)
         //   - send UPLOAD message to these nodes
@@ -308,10 +311,10 @@ public class Main {
         }
         // waiting for response from the server
         if (waiting4NodeList()) {
-            System.out.println("[WARNING] Haven't got the node list from leader!");
+            LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, "Haven't got the node list from leader!");
             return false;
         }
-        System.out.println("[INFO] Got the node list from leader!");
+        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Got the node list from leader!");
         for (Process process : Main.nodeList) {
             Sender.sendFile(process.getAddress(), Main.port_sdfs, localFileName, sdfsFileName);
         }
@@ -319,9 +322,9 @@ public class Main {
         return true;
     }
 
-    private boolean uploadRequest(String sdfsFileName) {
+    private boolean uploadRequest(String sdfsFileName) throws IOException {
         if (leader == null) {
-            System.out.println("[WARNING] No leader currently! Please wait for a while and try again later!");
+            LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, "No leader currently! Please wait for a while and try again later!");
             return false;
         }
         Sender.sendSDFS(
@@ -335,7 +338,7 @@ public class Main {
         return true;
     }
 
-    private boolean getFile(String fileName) {
+    private boolean getFile(String fileName) throws IOException {
         // - is leader
         //   - find which nodes store the file
         // - isn't leader
@@ -354,16 +357,16 @@ public class Main {
                     )
                     .collect(Collectors.toList());
         } else {
-            if (!getRequest(fileName)) {
+            if (!getRequest(fileName, 1)) {
                 return false;
             }
         }
         // waiting for response from the server
         if (waiting4NodeList()) {
-            System.out.println("[WARNING] Haven't got the node list from leader!");
+            LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, "Haven't got the node list from leader!");
             return false;
         }
-        System.out.println("[INFO] Got the node list from leader!");
+        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Got the node list from leader!");
 
         for (Process process : Main.nodeList) {
             Sender.sendSDFS(
@@ -383,9 +386,9 @@ public class Main {
         return true;
     }
 
-    private boolean getRequest(String fileName) {
+    private boolean getRequest(String fileName, int version) throws IOException {
         if (leader == null) {
-            System.out.println("[WARNING] No leader currently! Please wait for a while and try again later!");
+            LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, "No leader currently! Please wait for a while and try again later!");
             return false;
         }
         // file version refer to recent nums of versions
@@ -394,15 +397,15 @@ public class Main {
                         .setCommand(Command.DOWNLOAD_REQUEST)
                         .setHostName(Main.hostName)
                         .setPort(Main.port_sdfs)
-                        .setFile(FileOuterClass.File.newBuilder().setFileName(fileName).setVersion(String.valueOf(1)))
+                        .setFile(FileOuterClass.File.newBuilder().setFileName(fileName).setVersion(String.valueOf(version)))
                         .build()
         );
         return true;
     }
 
-    private boolean deleteRequest(String fileName){
-        if(leader == null){
-            System.out.println("[WARNING] No leader currently! Please wait for a while and try again later!");
+    private boolean deleteRequest(String fileName) throws IOException {
+        if (leader == null) {
+            LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, "No leader currently! Please wait for a while and try again later!");
             return false;
         }
         // file version refer to recent nums of versions
@@ -430,44 +433,44 @@ public class Main {
         return Main.nodeList == null || Main.nodeList.size() == 0;
     }
 
-    private void displayFileStorage(String fileName){
+    private void displayFileStorage(String fileName) throws IOException {
         // - is leader
         //   - find which nodes store the file
         // - isn't leader
         //   - send request to leader and wait for the response
         //   - display the list in console
         List<String> dataNodeList;
-        if(isLeader){
-            if(!Main.totalStorage.containsKey(fileName)){
-                System.out.println("[ERROR] No file " + fileName + " stored in sdfs system!");
+        if (isLeader) {
+            if (!Main.totalStorage.containsKey(fileName)) {
+                LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "No file " + fileName + " stored in sdfs system!");
                 return;
             }
             dataNodeList = totalStorage.get(fileName);
-        }else{
-            getRequest(fileName);
+        } else {
+            getRequest(fileName, 1);
             if (waiting4NodeList()) {
-                System.out.println("[WARNING] Haven't got the node list from leader!");
+                LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, "Haven't got the node list from leader!");
                 return;
             }
             dataNodeList = Main.nodeList.stream().map(Process::getAddress).collect(Collectors.toList());
-            System.out.println("[INFO] Got the node list from leader!");
+            LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Got the node list from leader!");
         }
         System.out.println("-----------------------------------------");
         System.out.println("            " + fileName + "             ");
         System.out.println("-----------------------------------------");
-        for (String hostname: dataNodeList) {
+        for (String hostname : dataNodeList) {
             System.out.println("   " + hostname);
         }
         System.out.println("-----------------------------------------");
     }
 
-    private void displayStore(){
+    private void displayStore() {
         // no difference between the leader and trivial nodes
         // simply list out all files stored on this machine
         System.out.println("-----------------------------------------");
         System.out.println("         " + Main.hostName + "           ");
         System.out.println("-----------------------------------------");
-        for (String file: Main.storageList.keySet()) {
+        for (String file : Main.storageList.keySet()) {
             System.out.println("     " + file + " version: " + Main.storageList.get(file));
         }
         System.out.println("-----------------------------------------");

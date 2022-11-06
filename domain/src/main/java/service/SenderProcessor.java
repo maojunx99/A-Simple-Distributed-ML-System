@@ -11,18 +11,18 @@ import java.net.*;
 import java.util.List;
 import java.util.ArrayList;
 
-public class SenderProcesser extends Thread{
-    private Message message;
-    private boolean onlyNeighbors;
+public class SenderProcessor extends Thread{
+    private final Message message;
+    private final boolean onlyNeighbors;
 
-    public  SenderProcesser(Message message, boolean onlyNeighbors) {
+    public SenderProcessor(Message message, boolean onlyNeighbors) {
         this.message = message;
         this.onlyNeighbors = onlyNeighbors;
     }
     @Override
     public void run() {
         //
-        DatagramSocket datagramSocket = null;
+        DatagramSocket datagramSocket;
         try {
             datagramSocket = new DatagramSocket();
         } catch (SocketException e) {

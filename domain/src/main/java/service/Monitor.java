@@ -96,7 +96,7 @@ public class Monitor extends Thread{
                         System.out.println("[CRASH] " + Main.hostName + "@" + Main.timestamp + " detected a crash on "
                                 + target.getAddress() + "@" + target.getTimestamp());
                         try {
-                            LogGenerator.logging(LogGenerator.LogType.CRASH, Main.hostName, Main.timestamp,
+                            LogGenerator.loggingCrashInfo(LogGenerator.LogType.CRASH, Main.hostName, Main.timestamp,
                                     target.getAddress(), target.getTimestamp());
                         } catch (IOException e) {
                             throw new RuntimeException(e);

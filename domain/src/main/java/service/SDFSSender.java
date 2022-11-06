@@ -4,6 +4,7 @@ import com.google.protobuf.ByteString;
 import core.Command;
 import core.FileOuterClass;
 import core.Message;
+import utils.LogGenerator;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -18,8 +19,6 @@ public class SDFSSender extends Thread {
     private Message message = null;
     private String localFileName = null;
     private String sdfsFileName = null;
-
-    private Socket socket;
 
     public SDFSSender(String hostName, int port, Message message) {
         this.hostName = hostName;
@@ -51,7 +50,7 @@ public class SDFSSender extends Thread {
         DataOutputStream outputStream = new DataOutputStream(toServer);
         if (this.message != null) {
             try {
-                System.out.println("[MESSAGE] send out: " + message);
+                LogGenerator.loggingInfo(LogGenerator.LogType.SEND, "\n" + message);
                 byte[] temp = this.message.toByteArray();
                 outputStream.write(temp);
                 try {
@@ -64,7 +63,11 @@ public class SDFSSender extends Thread {
                 throw new RuntimeException(e);
             }
         }else{
-            System.out.println("[ERROR] Message is NULL!");
+            try {
+                LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "Message is NULL!");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
         // read local file into message and flush to TCP socket
         byte[] contents;
@@ -83,7 +86,11 @@ public class SDFSSender extends Thread {
                         .build()
                 )
                 .build();
-        System.out.println("[MESSAGE] send out: " + message1);
+        try {
+            LogGenerator.loggingInfo(LogGenerator.LogType.SEND, "\n" + message1);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         try {
             outputStream.write(message1.toByteArray());
             try {

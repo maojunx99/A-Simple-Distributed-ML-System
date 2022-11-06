@@ -2,23 +2,8 @@ package service;
 
 import core.Process;
 import core.ProcessStatus;
-import dns.DNS;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
 
 public class IntroducerChecker extends Thread {
-
-    private final List<String> totalNetwork;
-
-    public IntroducerChecker() throws IOException {
-        Properties properties = new Properties();
-        String networkPropertiesPath = "../network.properties";
-        properties.load(this.getClass().getResourceAsStream(networkPropertiesPath));
-        totalNetwork = Collections.singletonList(properties.getProperty("vm_address"));
-    }
 
     @Override
     public void run() {

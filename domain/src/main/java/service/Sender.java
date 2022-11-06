@@ -3,9 +3,9 @@ package service;
 import core.Command;
 import core.Message;
 import core.Process;
+import utils.LogGenerator;
 
 import java.io.IOException;
-import java.net.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -23,11 +23,10 @@ import java.util.concurrent.TimeUnit;
 public class Sender {
     private static final int corePoolSize = 5;
     private static final int maximumPoolSize = 10;
-    public static DatagramSocket datagramSocket;
     public static ThreadPoolExecutor senderThreadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 0L,
-            TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+            TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
-    private static List<String> allMachines;
+    private static final List<String> allMachines;
 
     static {
         Properties properties = new Properties();
@@ -43,7 +42,7 @@ public class Sender {
         if (new Random().nextDouble() < Main.lostRate) {
             return;
         }
-        senderThreadPool.execute(new SenderProcesser(message, onlyNeighbors));
+        senderThreadPool.execute(new SenderProcessor(message, onlyNeighbors));
     }
 
     public static void send(String hostname, int port, Message message) {
@@ -57,8 +56,8 @@ public class Sender {
         senderThreadPool.execute(new SDFSSender(hostname, port, message));
     }
 
-    public static void sendFile(String hostname, int port, String localFileName, String sdfsFileName) {
-        System.out.println("[INFO] Sending file " + sdfsFileName + " to " + hostname);
+    public static void sendFile(String hostname, int port, String localFileName, String sdfsFileName) throws IOException {
+        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Sending file " + sdfsFileName + " to " + hostname);
         senderThreadPool.execute(new SDFSSender(hostname, port, localFileName, sdfsFileName));
     }
 
