@@ -260,7 +260,7 @@ public class SDFSReceiver extends Thread {
                     Main.WRITE_ACK++;
                     break;
                 case DELETE:
-                    String deleteName = message.getFile().getFileName();
+                    String deleteName = message.getMeta();
                     int temp = deleteName.lastIndexOf(".");
                     int newestVersion;
                     if(!Main.storageList.containsKey(deleteName)){
