@@ -78,7 +78,7 @@ public class SDFSReceiver extends Thread {
             }
             try {
                 LogGenerator.loggingInfo(LogGenerator.LogType.RECEIVING,
-                        "Got " + message.getFile().getFileName() + " from " + message.getHostName());
+                        "Got " + message.getCommand() + " " + message.getFile().getFileName() + " from " + message.getHostName());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -197,6 +197,7 @@ public class SDFSReceiver extends Thread {
                                 .setPort(Main.port_sdfs)
                                 .setFile(FileOuterClass.File.newBuilder()
                                         .setFileName(fileName).setContent(ByteString.copyFrom(fileData)).build())
+                                .setMeta(message.getMeta())
                                 .build();
                         Sender.sendSDFS(
                                 message.getHostName(),
@@ -233,7 +234,13 @@ public class SDFSReceiver extends Thread {
                     );
                     break;
                 case READ_ACK:
-                    String savePath = Main.localDirectory + message.getFile().getFileName();
+                    String savePath;
+                    String meta = message.getMeta();
+                    if(meta.equals("replica")){
+                        savePath = Main.localDirectory + message.getFile().getFileName();
+                    }else{
+                        savePath = Main.sdfsDirectory + message.getFile().getFileName();
+                    }
                     File readFile = new File(savePath);
                     try {
                         if (!readFile.exists()) {
