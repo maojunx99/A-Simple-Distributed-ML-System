@@ -1,7 +1,5 @@
 package service;
 
-import core.Command;
-import core.Message;
 import core.Process;
 import core.ProcessStatus;
 import dns.DNS;

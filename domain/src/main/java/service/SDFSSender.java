@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 public class SDFSSender extends Thread {
     private final String hostName;

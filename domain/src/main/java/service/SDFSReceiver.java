@@ -1,8 +1,8 @@
 package service;
 
 import com.google.protobuf.ByteString;
-import core.*;
 import core.Process;
+import core.*;
 import utils.LeaderFunction;
 import utils.MyReader;
 
@@ -10,10 +10,8 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -225,7 +223,7 @@ public class SDFSReceiver extends Thread {
                     String deleteName = message.getMeta();
                     int temp = deleteName.lastIndexOf(".");
                     int newestVersion = Main.storageList.get(deleteName);
-                    deleteName = deleteName.substring(0, temp) + "@" + String.valueOf(newestVersion) + deleteName.substring(temp);
+                    deleteName = deleteName.substring(0, temp) + "@" + newestVersion + deleteName.substring(temp);
                     for(int i = 1; i <= newestVersion; i++){
                         try {
                             boolean isDelete = Files.deleteIfExists(Paths.get(Main.sdfsDirectory, deleteName));
