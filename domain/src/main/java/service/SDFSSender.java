@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 public class SDFSSender extends Thread {
     private final String hostName;
@@ -64,6 +63,8 @@ public class SDFSSender extends Thread {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        }else{
+            System.out.println("[ERROR] Message is NULL!");
         }
         // read local file into message and flush to TCP socket
         byte[] contents;
@@ -72,7 +73,6 @@ public class SDFSSender extends Thread {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        System.out.println(Arrays.toString(contents));
         Message message1 = Message.newBuilder()
                 .setHostName(Main.hostName)
                 .setPort(Main.port_sdfs)

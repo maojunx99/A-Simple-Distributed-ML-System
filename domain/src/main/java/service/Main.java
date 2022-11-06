@@ -94,6 +94,7 @@ public class Main {
         );
         introducer = DNS.getIntroducer();
         totalStorage = new HashMap<>();
+        storageList = new HashMap<>();
         Thread receiver = new Thread(new Receiver());
         receiver.start();
         Thread monitor = new Thread(new Monitor());
@@ -148,31 +149,25 @@ public class Main {
                 case "get":
                     String fileName = scanner.next();
                     if (main.getFile(fileName)) {
-                        System.out.println("[INFO] Upload success!");
+                        System.out.println("[INFO] Download success!");
                     } else {
-                        System.out.println("[INFO] Upload aborted!");
+                        System.out.println("[INFO] Download aborted!");
                     }
                     break;
                 case "delete":
-                    // TODO: implement delete file
-                    // - is leader
-                    //   - find which nodes store the file
-                    //   - inform these nodes to delete all versions of the certain file
-                    // - isn't leader
-                    //   - send get request to the leader
+                    String filename = scanner.next();
+                    if(main.deleteRequest(filename)){
+                        System.out.println("[INFO] Delete success!");
+                    }else{
+                        System.out.println("[INFO] Delete aborted!");
+                    }
                     break;
                 case "ls":
-                    // TODO: implement list storage of a file
-                    // - is leader
-                    //   - find which nodes store the file
-                    // - isn't leader
-                    //   - send request to leader and wait for the response
-                    //   - display the list in console
+                    String name = scanner.next();
+                    main.displayFileStorage(name);
                     break;
                 case "store":
-                    // TODO: implement store
-                    // no difference between the leader and trivial nodes
-                    // simply list out all files stored on this machine
+                    main.displayStore();
                     break;
                 case "get-version":
                     // TODO: implement get versions of a file
@@ -297,7 +292,7 @@ public class Main {
         //   - send UPLOAD_REQUEST to the leader
         //   - send UPLOAD message to members in the list returned by leader
         if (!isLeader) {
-            if (!uploadRequest(localFileName, sdfsFileName)) {
+            if (!uploadRequest(sdfsFileName)) {
                 return false;
             }
         } else {
@@ -324,7 +319,7 @@ public class Main {
         return true;
     }
 
-    private boolean uploadRequest(String localFileName, String sdfsFileName) {
+    private boolean uploadRequest(String sdfsFileName) {
         if (leader == null) {
             System.out.println("[WARNING] No leader currently! Please wait for a while and try again later!");
             return false;
@@ -396,10 +391,27 @@ public class Main {
         // file version refer to recent nums of versions
         Sender.sendSDFS(
                 leader, Main.port_sdfs, Message.newBuilder()
-                        .setCommand(Command.UPLOAD_REQUEST)
+                        .setCommand(Command.DOWNLOAD_REQUEST)
                         .setHostName(Main.hostName)
                         .setPort(Main.port_sdfs)
                         .setFile(FileOuterClass.File.newBuilder().setFileName(fileName).setVersion(String.valueOf(1)))
+                        .build()
+        );
+        return true;
+    }
+
+    private boolean deleteRequest(String fileName){
+        if(leader == null){
+            System.out.println("[WARNING] No leader currently! Please wait for a while and try again later!");
+            return false;
+        }
+        // file version refer to recent nums of versions
+        Sender.sendSDFS(
+                leader, Main.port_sdfs, Message.newBuilder()
+                        .setCommand(Command.DELETE_REQUEST)
+                        .setHostName(Main.hostName)
+                        .setPort(Main.port_sdfs)
+                        .setFile(FileOuterClass.File.newBuilder().setFileName(fileName).build())
                         .build()
         );
         return true;
@@ -416,5 +428,48 @@ public class Main {
             cnt++;
         }
         return Main.nodeList == null || Main.nodeList.size() == 0;
+    }
+
+    private void displayFileStorage(String fileName){
+        // - is leader
+        //   - find which nodes store the file
+        // - isn't leader
+        //   - send request to leader and wait for the response
+        //   - display the list in console
+        List<String> dataNodeList;
+        if(isLeader){
+            if(!Main.totalStorage.containsKey(fileName)){
+                System.out.println("[ERROR] No file " + fileName + " stored in sdfs system!");
+                return;
+            }
+            dataNodeList = totalStorage.get(fileName);
+        }else{
+            getRequest(fileName);
+            if (waiting4NodeList()) {
+                System.out.println("[WARNING] Haven't got the node list from leader!");
+                return;
+            }
+            dataNodeList = Main.nodeList.stream().map(Process::getAddress).collect(Collectors.toList());
+            System.out.println("[INFO] Got the node list from leader!");
+        }
+        System.out.println("-----------------------------------------");
+        System.out.println("            " + fileName + "             ");
+        System.out.println("-----------------------------------------");
+        for (String hostname: dataNodeList) {
+            System.out.println("   " + hostname);
+        }
+        System.out.println("-----------------------------------------");
+    }
+
+    private void displayStore(){
+        // no difference between the leader and trivial nodes
+        // simply list out all files stored on this machine
+        System.out.println("-----------------------------------------");
+        System.out.println("         " + Main.hostName + "           ");
+        System.out.println("-----------------------------------------");
+        for (String file: Main.storageList.keySet()) {
+            System.out.println("     " + file + " version: " + Main.storageList.get(file));
+        }
+        System.out.println("-----------------------------------------");
     }
 }
