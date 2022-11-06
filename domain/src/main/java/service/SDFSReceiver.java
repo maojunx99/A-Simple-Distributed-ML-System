@@ -249,6 +249,7 @@ public class SDFSReceiver extends Thread {
                         return;
                     }
                     List<String> deleteList = Main.totalStorage.get(fileName);
+                    Main.
                     for(String i : deleteList){
                         Sender.sendSDFS(
                                 i,
