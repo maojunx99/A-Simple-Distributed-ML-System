@@ -262,7 +262,17 @@ public class SDFSReceiver extends Thread {
                 case DELETE:
                     String deleteName = message.getFile().getFileName();
                     int temp = deleteName.lastIndexOf(".");
-                    int newestVersion = Main.storageList.get(deleteName);
+                    int newestVersion;
+                    if(!Main.storageList.containsKey(deleteName)){
+                        try {
+                            LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "No file: " + deleteName);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        break;
+                    }else{
+                        newestVersion = Main.storageList.get(deleteName);
+                    }
                     deleteName = deleteName.substring(0, temp) + "@" + newestVersion + deleteName.substring(temp);
                     for (int i = 1; i <= newestVersion; i++) {
                         try {
