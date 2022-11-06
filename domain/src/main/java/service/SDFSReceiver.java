@@ -4,6 +4,7 @@ import com.google.protobuf.ByteString;
 import core.*;
 import core.Process;
 import utils.LeaderFunction;
+import utils.MyReader;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -57,18 +58,7 @@ public class SDFSReceiver extends Thread {
         public Executor(Socket socket) throws IOException {
             this.socket = socket;
             InputStream inputStream = socket.getInputStream();
-            byte[] bytes = new byte[0];
-            byte[] buff = new byte[1024];
-            int k = -1;
-            while ((k = inputStream.read(buff, 0, buff.length)) > -1) {
-                byte[] temp = new byte[bytes.length + k];
-                System.arraycopy(bytes, 0, temp, 0, bytes.length);
-                System.arraycopy(buff, 0, temp, bytes.length, k);  // copy current lot
-                bytes = temp; // call the temp buffer as your result buff
-            }
-            System.out.println(new String(bytes, StandardCharsets.UTF_8));
-            System.out.println(Arrays.toString(bytes));
-            this.message = Message.parseFrom(bytes);
+            this.message = Message.parseFrom(MyReader.read(inputStream));
             inputStream.close();
         }
 
@@ -82,14 +72,11 @@ public class SDFSReceiver extends Thread {
                     break;
                 }
             }
-            if (this.message.getCommand() != Command.PING && this.message.getCommand() != Command.ACK) {
-                System.out.println("[MESSAGE] get " + this.message.getCommand() + " command from "
-                        + this.message.getHostName() + "@" + this.message.getTimestamp());
-            }
             String fileName = null;
             if (message.hasFile()) {
                 fileName = message.getFile().getFileName();
             }
+            System.out.println("[MESSAGE] receive message: \n" + message);
             switch (this.message.getCommand()) {
                 case UPLOAD:
                     if (fileName == null) {
@@ -135,7 +122,6 @@ public class SDFSReceiver extends Thread {
                     List<String> dataNodeList = LeaderFunction.getDataNodesToStoreFile(fileName);
                     List<Process> dataNodeMemberList = new ArrayList<>();
                     for (String dataNode : dataNodeList) {
-                        Main.totalStorage.get(fileName).add(dataNode);
                         dataNodeMemberList.add(Process.newBuilder().setAddress(dataNode).build());
                     }
                     Sender.sendSDFS(
@@ -159,10 +145,11 @@ public class SDFSReceiver extends Thread {
                         System.out.println("[ERROR] Can not find download file!");
                         break;
                     }
-                    int latesetVerison = Main.storageList.get(fileName);
+                    int latestVersion = Main.storageList.get(fileName);
                     String downloadPath = Main.sdfsDirectory + fileName;
                     int dotIndex = downloadPath.lastIndexOf(".");
-                    downloadPath = downloadPath.substring(0, dotIndex) + "@" + latesetVerison + downloadPath.substring(dotIndex);
+                    downloadPath = downloadPath.substring(0, dotIndex) + "@" + latestVersion + downloadPath.substring(dotIndex);
+                    fileName = downloadPath.substring(Main.sdfsDirectory.length());
                     File downloadFile = new File(downloadPath);
                     byte[] fileData = null;
                     try {
@@ -170,27 +157,23 @@ public class SDFSReceiver extends Thread {
                             System.out.println("[ERROR] Failed to find file: " + downloadPath);
                         } else {
                             FileInputStream fileInputStream = new FileInputStream(downloadFile);
-                            int len = fileInputStream.available();
-                            fileData = new byte[len];
-                            int readAck = fileInputStream.read(fileData);
-                            if (readAck != len) {
-                                System.out.println("[ERROR] Errors in reading file " + downloadPath + " !");
-                            }
+                            fileData = MyReader.read(fileInputStream);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    Sender.send(
+                    Message message2 = Message.newBuilder()
+                            .setCommand(Command.READ_ACK)
+                            .setHostName(Main.hostName)
+                            .setTimestamp(Main.timestamp)
+                            .setPort(Main.port_sdfs)
+                            .setFile(FileOuterClass.File.newBuilder()
+                                    .setFileName(fileName).setContent(ByteString.copyFrom(fileData)).build())
+                            .build();
+                    Sender.sendSDFS(
                             message.getHostName(),
                             (int) message.getPort(),
-                            Message.newBuilder()
-                                    .setCommand(Command.WRITE_ACK)
-                                    .setHostName(Main.hostName)
-                                    .setTimestamp(Main.timestamp)
-                                    .setPort(Main.port_sdfs)
-                                    .setFile(FileOuterClass.File.newBuilder()
-                                            .setFileName(fileName).setContent(ByteString.copyFrom(fileData)).build())
-                                    .build()
+                            message2
                     );
                     break;
                 case DOWNLOAD_REQUEST:
