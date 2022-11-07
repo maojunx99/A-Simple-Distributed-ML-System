@@ -159,7 +159,7 @@ public class Main {
                     break;
                 case "get":
                     String fileName = scanner.next();
-                    if (main.getFile(fileName)) {
+                    if (main.getFile(fileName, 1)) {
                         LogGenerator.loggingInfo(LogGenerator.LogType.INFO, fileName + " download success!");
                     } else {
                         LogGenerator.loggingInfo(LogGenerator.LogType.INFO, fileName + " download aborted!");
@@ -186,7 +186,7 @@ public class Main {
                     if (version > 5) {
                         LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "version cannot larger than 5");
                     }
-                    main.getRequest(file, version);
+                    main.getFile(file, version);
                     break;
                 default:
                     if (Pattern.compile("[a-z]").matcher(command).matches()) {
@@ -359,7 +359,7 @@ public class Main {
         return true;
     }
 
-    private boolean getFile(String fileName) throws IOException, InterruptedException {
+    private boolean getFile(String fileName, int version) throws IOException, InterruptedException {
         // - is leader
         //   - find which nodes store the file
         // - isn't leader
@@ -399,7 +399,7 @@ public class Main {
                             .setCommand(Command.DOWNLOAD)
                             .setFile(FileOuterClass.File.newBuilder()
                                     .setFileName(fileName)
-                                    .setVersion(String.valueOf(1)))
+                                    .setVersion(String.valueOf(version)))
                             .build()
             );
         }
