@@ -177,13 +177,13 @@ public class SDFSReceiver extends Thread {
                     int dotIndex = downloadPath.lastIndexOf(".");
                     int lastNumVersion = Integer.parseInt(message.getFile().getVersion());
                     for (int i = 0; i < Math.min(lastNumVersion, latestVersion); i++) {
-                        downloadPath = downloadPath.substring(0, dotIndex) + "@" + (latestVersion - i) + downloadPath.substring(dotIndex);
-                        fileName = downloadPath.substring(Main.sdfsDirectory.length());
-                        File downloadFile = new File(downloadPath);
+                        String currentDownloadPath = downloadPath.substring(0, dotIndex) + "@" + (latestVersion - i) + downloadPath.substring(dotIndex);
+                        fileName = currentDownloadPath.substring(Main.sdfsDirectory.length());
+                        File downloadFile = new File(currentDownloadPath);
                         byte[] fileData = null;
                         try {
                             if (!downloadFile.exists()) {
-                                LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "Failed to find file: " + downloadPath);
+                                LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "Failed to find file: " + currentDownloadPath);
                             } else {
                                 FileInputStream fileInputStream = new FileInputStream(downloadFile);
                                 fileData = MyReader.read(fileInputStream);
