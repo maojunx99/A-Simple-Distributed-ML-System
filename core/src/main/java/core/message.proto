@@ -1,0 +1,36 @@
+syntax = "proto3";
+package core;
+
+import "core/process.proto";
+import "core/file.proto";
+option java_multiple_files = true;
+
+message Message{
+  string hostName = 1;
+  int64 port = 2;
+  string timestamp = 3;
+  Command command = 4;
+  repeated core.Process membership = 5;
+  optional File file = 6;
+  string meta = 7;
+}
+
+enum Command{
+  JOIN = 0;
+  LEAVE = 1;
+  PING = 2;
+  ACK = 3;
+  UPDATE = 4;
+  DISPLAY = 5;
+  WELCOME = 6;
+  UPLOAD_REQUEST = 7;
+  UPLOAD = 8;
+  DOWNLOAD_REQUEST = 9;
+  DOWNLOAD = 10;
+  ELECTED = 11;
+  READ_ACK = 12;
+  WRITE_ACK = 13;
+  REPLY = 14;
+  DELETE_REQUEST = 15;
+  DELETE = 16;
+}
