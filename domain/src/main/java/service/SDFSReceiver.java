@@ -176,7 +176,7 @@ public class SDFSReceiver extends Thread {
                     String downloadPath = Main.sdfsDirectory + fileName;
                     int dotIndex = downloadPath.lastIndexOf(".");
                     int lastNumVersion = Integer.parseInt(message.getFile().getVersion());
-                    for (int i = 0; i < lastNumVersion; i++) {
+                    for (int i = 0; i < Math.min(lastNumVersion, latestVersion); i++) {
                         downloadPath = downloadPath.substring(0, dotIndex) + "@" + (latestVersion - i) + downloadPath.substring(dotIndex);
                         fileName = downloadPath.substring(Main.sdfsDirectory.length());
                         File downloadFile = new File(downloadPath);
@@ -197,7 +197,9 @@ public class SDFSReceiver extends Thread {
                                 .setTimestamp(Main.timestamp)
                                 .setPort(Main.port_sdfs)
                                 .setFile(FileOuterClass.File.newBuilder()
-                                        .setFileName(fileName).setContent(ByteString.copyFrom(fileData)).build())
+                                        .setFileName(fileName).setContent(ByteString.copyFrom(fileData))
+                                        .setVersion(String.valueOf(latestVersion - i))
+                                        .build())
                                 .setMeta(message.getMeta())
                                 .build();
                         Sender.sendSDFS(
@@ -237,9 +239,10 @@ public class SDFSReceiver extends Thread {
                 case READ_ACK:
                     String savePath;
                     String meta = message.getMeta();
-                    if(meta.equals("replica")){
+                    if (meta.equals("replica")) {
                         savePath = Main.sdfsDirectory + message.getFile().getFileName();
-                    }else{
+                        Main.storageList.put(message.getFile().getFileName(), Integer.parseInt(message.getFile().getVersion()));
+                    } else {
                         savePath = Main.localDirectory + message.getFile().getFileName();
                     }
                     File readFile = new File(savePath);
@@ -264,14 +267,14 @@ public class SDFSReceiver extends Thread {
                     String deleteName = message.getMeta();
                     int temp = deleteName.lastIndexOf(".");
                     int newestVersion;
-                    if(!Main.storageList.containsKey(deleteName)){
+                    if (!Main.storageList.containsKey(deleteName)) {
                         try {
                             LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "No file: " + deleteName);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
                         break;
-                    }else{
+                    } else {
                         newestVersion = Main.storageList.get(deleteName);
                     }
                     deleteName = deleteName.substring(0, temp) + "@" + newestVersion + deleteName.substring(temp);

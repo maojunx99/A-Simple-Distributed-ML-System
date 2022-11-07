@@ -56,36 +56,14 @@ public class Monitor extends Thread {
                     }
                     datagramPacketList.add(packet);
                 }
-                for (DatagramPacket datagramPacket : datagramPacketList) {
-                    try {
-                        datagramSocket.send(datagramPacket);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                boolean hasCrash = heartbeat();
+                if(hasCrash){
+                    int cnt = 3;
+                    while(hasCrash && cnt > 0){
+                        hasCrash = heartbeat();
+                        cnt--;
                     }
                 }
-                //check whether receive "ACK" from each neighbors
-                boolean hasCrash = false;
-                int cnt = 0;
-                while (cnt < Main.timeBeforeCrash) {
-                    try {
-                        //wait for 1s
-                        Thread.sleep(1000);
-                        boolean allFine = true;
-                        for (int i = 0; i < isAck.length; i++) {
-                            if(!isAck[i]){
-                                allFine = false;
-                                break;
-                            }
-                        }
-                        if(allFine){
-                            break;
-                        }
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    cnt += 1000;
-                }
-
                 for (int k = 0; k < neighbors.size(); k++) {
                     if (!isAck[k]) {
                         Process neighbor = neighbors.get(k);
@@ -99,7 +77,6 @@ public class Monitor extends Thread {
                             }
                         }
                         if (_continue) continue;
-                        hasCrash = true;
                         Process target = neighbors.get(k);
                         int length = Main.membershipList.size();
                         for (int i = 0; i < length; i++) {
@@ -109,7 +86,7 @@ public class Monitor extends Thread {
                                         .setTimestamp(String.valueOf(Instant.now().getEpochSecond()))
                                         .setAddress(target.getAddress())
                                         .setPort(target.getPort()).build());
-                                // TODO: if this is the leader, then re-replica files on this machine
+                                // if this is the leader, then re-replica files on this machine
                                 if (Main.isLeader) {
                                     try {
                                         LeaderFunction.reReplica(Main.membershipList.get(i).getAddress());
@@ -139,4 +116,38 @@ public class Monitor extends Thread {
         }
     }
 
+    private boolean heartbeat(){
+        for (DatagramPacket datagramPacket : datagramPacketList) {
+            try {
+                datagramSocket.send(datagramPacket);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        //check whether receive "ACK" from each neighbors
+        boolean hasCrash = false;
+        int cnt = 0;
+        while (cnt < Main.timeBeforeCrash) {
+            try {
+                //wait for 1s
+                Thread.sleep(1000);
+                boolean allFine = true;
+                for (int i = 0; i < isAck.length; i++) {
+                    if(!isAck[i]){
+                        allFine = false;
+                        hasCrash = true;
+                        break;
+                    }
+                }
+                if(allFine){
+                    hasCrash = false;
+                    break;
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            cnt += 1000;
+        }
+        return hasCrash;
+    }
 }

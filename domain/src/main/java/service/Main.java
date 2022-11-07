@@ -248,6 +248,9 @@ public class Main {
     }
 
     private void join() throws InterruptedException, IOException {
+        // delete files in sdfsDirectory
+        EmptyDirectory.execute(Main.sdfsDirectory);
+        Main.storageList = new HashMap<>();
         //call introducer to get list
         timestamp = Instant.now().getEpochSecond() + "";
         Main.membershipList.set(0, Main.membershipList.get(0).toBuilder().setStatus(ProcessStatus.ALIVE).build());
@@ -298,9 +301,6 @@ public class Main {
                         .build(),
                 true
         );
-        // delete files in sdfsDirectory
-        EmptyDirectory.execute(Main.sdfsDirectory);
-        Main.storageList = new HashMap<>();
         LogGenerator.loggingInfo(LogGenerator.LogType.JOIN, "Joined the group!");
     }
 

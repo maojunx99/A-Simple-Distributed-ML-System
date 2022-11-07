@@ -62,7 +62,7 @@ public class LeaderFunction {
                                     .setPort(Main.port_sdfs)
                                     .setCommand(Command.DOWNLOAD)
                                     .setMeta("replica")
-                                    .setFile(FileOuterClass.File.newBuilder().setFileName(file).setVersion("1").build())
+                                    .setFile(FileOuterClass.File.newBuilder().setFileName(file).setVersion("5").build())
                                     .build()
                     );
                 }

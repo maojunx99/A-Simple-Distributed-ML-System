@@ -51,9 +51,7 @@ public class SDFSSender extends Thread {
         if (this.message != null) {
             try {
                 LogGenerator.loggingInfo(LogGenerator.LogType.SEND,  message.getHostName() +
-                        " sends " + message.getFile().getFileName() + " to " + hostName);
-//                byte[] temp = this.message.toByteArray();
-//                outputStream.write(temp);
+                        " sends " + message.getCommand() + " " + message.getFile().getFileName() + " to " + hostName);
                 this.message.writeTo(outputStream);
                 try {
                     socket.shutdownOutput();
@@ -89,7 +87,6 @@ public class SDFSSender extends Thread {
             throw new RuntimeException(e);
         }
         try {
-//            outputStream.write(message1.toByteArray());
             message1.writeTo(outputStream);
             try {
                 socket.shutdownOutput();
@@ -99,7 +96,5 @@ public class SDFSSender extends Thread {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        // refer to https://srikarthiks.files.wordpress.com/2019/07/file-transfer-using-tcp.pdf
     }
 }
