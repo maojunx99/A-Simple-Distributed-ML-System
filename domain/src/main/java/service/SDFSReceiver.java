@@ -238,9 +238,9 @@ public class SDFSReceiver extends Thread {
                     String savePath;
                     String meta = message.getMeta();
                     if(meta.equals("replica")){
-                        savePath = Main.localDirectory + message.getFile().getFileName();
-                    }else{
                         savePath = Main.sdfsDirectory + message.getFile().getFileName();
+                    }else{
+                        savePath = Main.localDirectory + message.getFile().getFileName();
                     }
                     File readFile = new File(savePath);
                     try {
