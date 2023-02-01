@@ -4,9 +4,7 @@ import core.Command;
 import core.Message;
 import core.Process;
 import core.ProcessStatus;
-import utils.LeaderFunction;
-import utils.LogGenerator;
-import utils.NeighborFilter;
+import utils.*;
 
 import java.io.IOException;
 import java.net.*;
@@ -18,7 +16,6 @@ import java.util.List;
  * To monitor neighbors, periodically check whether anyone of them crash
  */
 public class Monitor extends Thread {
-    private final List<DatagramPacket> datagramPacketList = new ArrayList<>();
     private final DatagramSocket datagramSocket;
     boolean[] isAck;
 
@@ -38,6 +35,7 @@ public class Monitor extends Thread {
                 // ping 4 neighbors every 1 s
                 List<Process> neighbors = NeighborFilter.getNeighbors();
                 Main.timestamp = Instant.now().getEpochSecond() + "";
+                List<DatagramPacket> datagramPacketList = new ArrayList<>();
                 for (Process process : neighbors) {
                     Message message = Message.newBuilder().setHostName(Main.hostName)
                             .setPort(Main.port_membership)
@@ -56,17 +54,29 @@ public class Monitor extends Thread {
                     }
                     datagramPacketList.add(packet);
                 }
-                boolean hasCrash = heartbeat();
+                boolean hasCrash = heartbeat(datagramPacketList);
                 if(hasCrash){
                     int cnt = 3;
                     while(hasCrash && cnt > 0){
-                        hasCrash = heartbeat();
+                        hasCrash = heartbeat(datagramPacketList);
                         cnt--;
                     }
+                }else{
+                    continue;
                 }
                 for (int k = 0; k < neighbors.size(); k++) {
                     if (!isAck[k]) {
                         Process neighbor = neighbors.get(k);
+                        if(Main.hostName.equals(Main.backupCoordinator) && neighbor.getAddress().equals(Main.leader) && !Main.isLeader){
+                            Sender.send(Message.newBuilder()
+                                    .setMeta(Main.hostName)
+                                    .setCommand(Command.ELECTED)
+                                    .build(),false);
+                            Main.isLeader =true;
+                            Main.isCoordinator = true;
+                            new Thread(new MyQuery("RESNET50", Allocator.batchSizeMap.get("RESNET50"))).start();
+                            new Thread(new MyQuery("INCEPTION_V3", Allocator.batchSizeMap.get("INCEPTION_V3"))).start();
+                        }
                         boolean _continue = false;
                         for (Process process : Main.membershipList) {
                             if (process.getAddress().equals(neighbor.getAddress())) {
@@ -116,7 +126,7 @@ public class Monitor extends Thread {
         }
     }
 
-    private boolean heartbeat(){
+    private boolean heartbeat(List<DatagramPacket> datagramPacketList){
         for (DatagramPacket datagramPacket : datagramPacketList) {
             try {
                 datagramSocket.send(datagramPacket);

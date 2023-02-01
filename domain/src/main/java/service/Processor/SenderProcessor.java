@@ -1,9 +1,10 @@
-package service;
+package service.Processor;
 
 import core.Message;
 import core.Process;
 import core.ProcessStatus;
 import core.Command;
+import service.Main;
 import utils.NeighborFilter;
 
 import java.io.IOException;

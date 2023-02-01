@@ -3,9 +3,10 @@ package service;
 import com.google.protobuf.ByteString;
 import core.Process;
 import core.*;
-import utils.LeaderFunction;
-import utils.LogGenerator;
-import utils.MyReader;
+import org.tensorflow.op.core.All;
+import service.Processor.QueryProcessor;
+import service.Processor.QueryReplyProcessor;
+import utils.*;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -14,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +27,8 @@ public class SDFSReceiver extends Thread {
     private static final int port = Main.port_sdfs;
     private static final int corePoolSize = 10;
     private final ServerSocket receiverSocket;
+    private static boolean[] isInference;
+//    static List<>
     ThreadPoolExecutor threadPoolExecutor;
 
     public SDFSReceiver() {
@@ -34,6 +38,7 @@ public class SDFSReceiver extends Thread {
             throw new RuntimeException(e);
         }
         int maximumPoolSize = Integer.MAX_VALUE / 2;
+        isInference = new boolean[Models.models.size()];
         threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 0L,
                 TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
@@ -78,7 +83,7 @@ public class SDFSReceiver extends Thread {
             }
             try {
                 LogGenerator.loggingInfo(LogGenerator.LogType.RECEIVING,
-                        "Got " + message.getCommand() + " " + message.getFile().getFileName() + " from " + message.getHostName());
+                        "Got " + message.getCommand() + " " + message.getFile().getFileName() + " from " + message.getHostName() + message.getMeta());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -191,6 +196,7 @@ public class SDFSReceiver extends Thread {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                        assert fileData != null;
                         Message message2 = Message.newBuilder()
                                 .setCommand(Command.READ_ACK)
                                 .setHostName(Main.hostName)
@@ -216,6 +222,17 @@ public class SDFSReceiver extends Thread {
                     if (!Main.totalStorage.containsKey(fileName)) {
                         try {
                             LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Target file does not exit in SDFS: " + fileName);
+                            Sender.sendSDFS(
+                                    message.getHostName(),
+                                    (int) message.getPort(),
+                                    Message.newBuilder()
+                                            .setCommand(Command.REPLY)
+                                            .setHostName(Main.hostName)
+                                            .setTimestamp(Main.timestamp)
+                                            .setPort(Main.port_sdfs)
+                                            .setMeta("No such file" + fileName)
+                                            .build()
+                            );
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -240,7 +257,10 @@ public class SDFSReceiver extends Thread {
                     String savePath;
                     String meta = message.getMeta();
                     if (meta.equals("replica")) {
-                        savePath = Main.sdfsDirectory + message.getFile().getFileName();
+                        String temp = message.getFile().getFileName();
+                        int i = temp.lastIndexOf("@");
+                        temp = temp.substring(0, i) + temp.substring(i + 2);
+                        savePath = Main.sdfsDirectory + temp;
                         Main.storageList.put(message.getFile().getFileName(), Integer.parseInt(message.getFile().getVersion()));
                     } else {
                         savePath = Main.localDirectory + message.getFile().getFileName();
@@ -277,14 +297,14 @@ public class SDFSReceiver extends Thread {
                     } else {
                         newestVersion = Main.storageList.get(deleteName);
                     }
-                    deleteName = deleteName.substring(0, temp) + "@" + newestVersion + deleteName.substring(temp);
                     for (int i = 1; i <= newestVersion; i++) {
+                        String fileTobeDeleted = deleteName.substring(0, temp) + "@" + i + deleteName.substring(temp);
                         try {
-                            boolean isDelete = Files.deleteIfExists(Paths.get(Main.sdfsDirectory, deleteName));
+                            boolean isDelete = Files.deleteIfExists(Paths.get(Main.sdfsDirectory, fileTobeDeleted));
                             if (!isDelete) {
-                                LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, deleteName + "does not exist!");
+                                LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, fileTobeDeleted + "does not exist!");
                             }
-                            LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Successfully delete " + deleteName);
+                            LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Successfully delete " + fileTobeDeleted);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -315,10 +335,138 @@ public class SDFSReceiver extends Thread {
                     break;
                 case ELECTED:
                     Main.leader = message.getMeta();
+                    Main.isLeader = false;
                     try {
                         LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Leader is " + Main.leader + " !");
                     } catch (IOException e) {
                         throw new RuntimeException(e);
+                    }
+                    break;
+                case QUERY_REQUEST:
+                    if(!Main.isLeader){
+                        return;
+                    }
+                    String option = message.getMeta();
+                    if(!Models.models.containsKey(option)){
+                        System.out.println("[WARNING] not such model: " + option);
+                    }
+                    if(isInference[Models.models.get(option)]){
+                        System.out.println("[WARNING] Model " + option + " is in inference!");
+                        break;
+                    }
+                    try {
+                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Query request (type = " +
+                                (Objects.equals(option, "RESNET50") ? "Resnet)" : "Inception)") + " from " + message.getHostName());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    new Thread(new MyQuery(option, Allocator.batchSizeMap.get(option))).start();
+                    Sender.sendSDFS(Main.backupCoordinator, Main.port_sdfs, Message.newBuilder()
+                            .setMeta(Allocator.batchSizeMap.get("RESNET50") + " " + Allocator.batchSizeMap.get("INCEPTION_V3"))
+                            .setCommand(Command.SYNC_INFO)
+                            .build());
+                    isInference[Models.models.get(option)] = true;
+                    break;
+                case QUERY:
+                    option = message.getMeta().split(" ")[0];
+                    new Thread(new QueryProcessor(message)).start();
+                    try {
+                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, "Query (type = " +
+                                (option.equals("RESNET50") ? "Resnet)" : "Inception)") + " from " + message.getHostName());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    break;
+                case QUERY_REPLY:
+                    new Thread(new QueryReplyProcessor(message)).start();
+                    break;
+                case SYNC_INFO:
+                    if(!Main.isLeader){
+                        if(Main.hostName.equals(Main.backupCoordinator)){
+                            String[] sizes = message.getMeta().split(" ");
+                            if(sizes[0].equals("totalStorage")){
+                                if(!Main.totalStorage.containsKey(sizes[1])){
+                                    Main.totalStorage.put(sizes[1], new ArrayList<>());
+                                }
+                                for(int i = 2; i < sizes.length; i ++){
+                                    Main.totalStorage.get(sizes[1]).add(sizes[i]);
+                                }
+                                break;
+                            }
+                            if(sizes.length == 2){
+                                int size1 = Integer.parseInt(sizes[0]);
+                                int size2 = Integer.parseInt(sizes[1]);
+                                Allocator.batchSizeMap.put("RESNET50", size1);
+                                Allocator.batchSizeMap.put("INCEPTION_V3", size2);
+                                break;
+                            }else{
+                                String[] allocation = message.getMeta().split(";");
+                                for(String i :allocation){
+                                    String[] tmp = i.trim().split(" ");
+                                    List<String> val = new ArrayList<>();
+                                    for(int j = 1; j < tmp.length; j ++){
+                                        val.add(tmp[j]);
+                                    }
+                                    Main.availableWorker();
+                                    Allocator.allocationMap.put(tmp[0], val);
+                                    Allocator.nextVMPointer.put(tmp[0], 0);
+                                }
+                            }
+                            break;
+                        }
+                        return;
+                    }
+                case RETRIEVE:
+                    String item = message.getMeta();
+                    switch(item){
+                        case "allocation":
+                            StringBuilder allocation = new StringBuilder();
+                            for (String key: Allocator.allocationMap.keySet()) {
+                                allocation.append(key).append(": ");
+                                for (String vm: Allocator.allocationMap.get(key)) {
+                                    allocation.append(vm).append(", ");
+                                }
+                                allocation.delete(allocation.length() - 2, allocation.length());
+                                allocation.append("\n");
+                            }
+                            Sender.sendSDFS(message.getHostName(), Main.port_sdfs, Message.newBuilder().setCommand(Command.RETRIEVE).setMeta(String.valueOf(allocation)).setHostName(Main.hostName).setPort(Main.port_sdfs).build());
+                            break;
+                        case "batch_size":
+                            StringBuilder batchSize = new StringBuilder();
+                            for (String key: Allocator.batchSizeMap.keySet()) {
+                                batchSize.append(key).append(": ").append(Allocator.batchSizeMap.get(key)).append("\n");
+                            }
+                            Sender.sendSDFS(message.getHostName(), Main.port_sdfs, Message.newBuilder().setCommand(Command.RETRIEVE).setMeta(String.valueOf(batchSize)).setHostName(Main.hostName).setPort(Main.port_sdfs).build());
+                            break;
+                        case "query-rate":
+                            StringBuilder queryRate = new StringBuilder();
+                            for (String model : Allocator.modelList) {
+                                queryRate.append(model)
+                                        .append(": {\n")
+                                        .append("       query-rate: ").append(Allocator.queryRate(model)).append("\n")
+                                        .append("       query-count: ").append(Allocator.countTillNow(model)).append("\n")
+                                        .append("}\n");
+                            }
+                            Sender.sendSDFS(message.getHostName(), Main.port_sdfs, Message.newBuilder().setCommand(Command.RETRIEVE).setMeta(String.valueOf(queryRate)).setHostName(Main.hostName).setPort(Main.port_sdfs).build());
+                            break;
+                        case "statistic":
+                            StringBuilder statistic = new StringBuilder();
+                            double[][] result = Allocator.processTime();
+                            statistic.append("STATISTIC:\n");
+                            for (int i = 0; i < Allocator.modelList.size(); i++) {
+                                statistic.append(Allocator.modelList.get(i))
+                                        .append(": {\n")
+                                        .append("       average time consumption: ").append(result[i][0]).append("ms\n")
+                                        .append("       25% percentile: ").append(result[i][1]).append("ms\n")
+                                        .append("       50% percentile: ").append(result[i][2]).append("ms\n")
+                                        .append("       75% percentile: ").append(result[i][3]).append("ms\n")
+                                        .append("       deviation: ").append(result[i][4]).append("\n")
+                                        .append("}\n");
+                            }
+                            Sender.sendSDFS(message.getHostName(), Main.port_sdfs, Message.newBuilder().setCommand(Command.RETRIEVE).setMeta(String.valueOf(statistic)).setHostName(Main.hostName).setPort(Main.port_sdfs).build());
+                            break;
+                        default:
+                            System.out.println(item);
                     }
                     break;
                 default:

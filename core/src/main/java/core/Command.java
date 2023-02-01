@@ -76,6 +76,26 @@ public enum Command
    * <code>DELETE = 16;</code>
    */
   DELETE(16),
+  /**
+   * <code>QUERY_REQUEST = 17;</code>
+   */
+  QUERY_REQUEST(17),
+  /**
+   * <code>QUERY = 18;</code>
+   */
+  QUERY(18),
+  /**
+   * <code>QUERY_REPLY = 19;</code>
+   */
+  QUERY_REPLY(19),
+  /**
+   * <code>RETRIEVE = 20;</code>
+   */
+  RETRIEVE(20),
+  /**
+   * <code>SYNC_INFO = 21;</code>
+   */
+  SYNC_INFO(21),
   UNRECOGNIZED(-1),
   ;
 
@@ -147,6 +167,26 @@ public enum Command
    * <code>DELETE = 16;</code>
    */
   public static final int DELETE_VALUE = 16;
+  /**
+   * <code>QUERY_REQUEST = 17;</code>
+   */
+  public static final int QUERY_REQUEST_VALUE = 17;
+  /**
+   * <code>QUERY = 18;</code>
+   */
+  public static final int QUERY_VALUE = 18;
+  /**
+   * <code>QUERY_REPLY = 19;</code>
+   */
+  public static final int QUERY_REPLY_VALUE = 19;
+  /**
+   * <code>RETRIEVE = 20;</code>
+   */
+  public static final int RETRIEVE_VALUE = 20;
+  /**
+   * <code>SYNC_INFO = 21;</code>
+   */
+  public static final int SYNC_INFO_VALUE = 21;
 
 
   public final int getNumber() {
@@ -190,6 +230,11 @@ public enum Command
       case 14: return REPLY;
       case 15: return DELETE_REQUEST;
       case 16: return DELETE;
+      case 17: return QUERY_REQUEST;
+      case 18: return QUERY;
+      case 19: return QUERY_REPLY;
+      case 20: return RETRIEVE;
+      case 21: return SYNC_INFO;
       default: return null;
     }
   }

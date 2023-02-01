@@ -33,4 +33,9 @@ enum Command{
   REPLY = 14;
   DELETE_REQUEST = 15;
   DELETE = 16;
+  QUERY_REQUEST = 17;
+  QUERY = 18;
+  QUERY_REPLY = 19;
+  RETRIEVE = 20;
+  SYNC_INFO = 21;
 }

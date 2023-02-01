@@ -1,20 +1,21 @@
 package service;
 
-import core.*;
 import core.Process;
+import core.*;
 import dns.DNS;
 import grep.client.Client;
 import grep.server.Server;
+import utils.Allocator;
 import utils.EmptyDirectory;
 import utils.LeaderFunction;
 import utils.LogGenerator;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.*;
-import java.util.regex.Pattern;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -40,11 +41,17 @@ public class Main {
 
     public static String sdfsDirectory;
 
+    public static String modelDirectory;
+
+    public static String dataDirectory;
+
     public static String leader;
 
     public static int copies;
 
     public static boolean isLeader = false;
+
+    public static boolean isCoordinator = false;
 
     public static List<Process> nodeList = null;
 
@@ -64,6 +71,18 @@ public class Main {
     public static int R;
 
     public static int W;
+
+
+    public static Models models;
+
+    public static String backupCoordinator;
+
+
+    public static List<List<Query>> queryList;
+
+    public volatile static int queryId_Resnet = 0;
+
+    public volatile static int queryId_Inception = 0;
 
 
     static {
@@ -88,9 +107,12 @@ public class Main {
         timeBeforeCrash = Integer.parseInt(properties.getProperty("time_before_crash"));
         localDirectory = properties.getProperty("local_directory");
         sdfsDirectory = properties.getProperty("sdfs_directory");
+        modelDirectory = properties.getProperty("model_directory");
+        dataDirectory = properties.getProperty("dataset_directory");
         copies = Integer.parseInt(properties.getProperty("copies"));
         R = Integer.parseInt(properties.getProperty("read"));
         W = Integer.parseInt(properties.getProperty("write"));
+        backupCoordinator = properties.getProperty("backup");
         Instant time = Instant.now();
         timestamp = String.valueOf(time.getEpochSecond());
         membershipList = new ArrayList<>();
@@ -102,9 +124,12 @@ public class Main {
                 .build()
         );
         introducer = DNS.getIntroducer();
-        totalStorage = new HashMap<>();
+        totalStorage = new ConcurrentHashMap<>();
         storageList = new HashMap<>();
-
+        models = new Models();
+        queryList = new ArrayList<>();
+        queryList.add(new ArrayList<>());
+        queryList.add(new ArrayList<>());
 
         Thread receiver = new Thread(new Receiver());
         receiver.start();
@@ -123,76 +148,103 @@ public class Main {
         Main main = new Main();
         Scanner scanner = new Scanner(System.in);
         String command;
-        while (!(command = scanner.nextLine()).equals("EOF")) {
-            switch (command) {
-                case "join":
-                    main.join();
-                    break;
-                case "leave":
-                    main.leave();
-                    break;
-                case "list_mem":
-                    listMem();
-                    break;
-                case "list_self":
-                    main.print();
-                    break;
-                case "grep -c":
-                case "grep -Ec":
-                case "grep":
-                    System.out.println("please input grep content");
-                    String query = scanner.nextLine();
-                    try {
-                        Client.callServers("grep", query);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    break;
-                case "put":
-                    String localFileName = scanner.next();
-                    String sdfsFileName = scanner.next();
-                    if (main.uploadFile(localFileName, sdfsFileName)) {
-                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, localFileName + " upload success!");
-                    } else {
-                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, localFileName + " upload aborted!");
-                    }
-                    break;
-                case "get":
-                    String fileName = scanner.next();
-                    if (main.getFile(fileName, 1)) {
-                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, fileName + " download success!");
-                    } else {
-                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, fileName + " download aborted!");
-                    }
-                    break;
-                case "delete":
-                    String filename = scanner.next();
-                    if (main.deleteRequest(filename)) {
-                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, filename + " delete success!");
-                    } else {
-                        LogGenerator.loggingInfo(LogGenerator.LogType.INFO, filename + " delete aborted!");
-                    }
-                    break;
-                case "ls":
-                    String name = scanner.next();
-                    main.displayFileStorage(name);
-                    break;
-                case "store":
-                    main.displayStore();
-                    break;
-                case "get-version":
-                    String file = scanner.next();
-                    int version = scanner.nextInt();
-                    if (version > 5) {
-                        LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "version cannot larger than 5");
-                    }
-                    main.getFile(file, version);
-                    break;
-                default:
-                    if (Pattern.compile("[a-z]").matcher(command).matches()) {
-                        LogGenerator.loggingInfo(LogGenerator.LogType.WARNING, "Wrong command, please re-input");
-                        System.out.println(command);
-                    }
+        while (!(command = scanner.next()).equals("EOF")) {
+            try {
+                switch (command) {
+                    case "join":
+                        main.join();
+                        break;
+                    case "leave":
+                        main.leave();
+                        break;
+                    case "list_mem":
+                        listMem();
+                        break;
+                    case "list_self":
+                        main.print();
+                        break;
+                    case "grep -c":
+                    case "grep -Ec":
+                    case "grep":
+                        System.out.println("please input grep content");
+                        String query = scanner.next();
+                        try {
+                            Client.callServers("grep", query);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        break;
+                    case "put":
+                        String localFileName = scanner.next();
+                        String sdfsFileName = scanner.next();
+                        if (main.uploadFile(localFileName, sdfsFileName)) {
+                            LogGenerator.loggingInfo(LogGenerator.LogType.INFO, localFileName + " upload success!");
+                        } else {
+                            LogGenerator.loggingInfo(LogGenerator.LogType.INFO, localFileName + " upload aborted!");
+                        }
+                        break;
+                    case "get":
+                        String fileName = scanner.next();
+                        if (main.getFile(fileName, 1)) {
+                            LogGenerator.loggingInfo(LogGenerator.LogType.INFO, fileName + " download success!");
+                        } else {
+                            LogGenerator.loggingInfo(LogGenerator.LogType.INFO, fileName + " download aborted!");
+                        }
+                        break;
+                    case "delete":
+                        String filename = scanner.next();
+                        if (main.deleteRequest(filename)) {
+                            LogGenerator.loggingInfo(LogGenerator.LogType.INFO, filename + " delete success!");
+                        } else {
+                            LogGenerator.loggingInfo(LogGenerator.LogType.INFO, filename + " delete aborted!");
+                        }
+                        break;
+                    case "ls":
+                        String name = scanner.next();
+                        main.displayFileStorage(name);
+                        break;
+                    case "store":
+                        main.displayStore();
+                        break;
+                    case "get-versions":
+                        String file = scanner.next();
+                        int version = scanner.nextInt();
+                        if (version > 5) {
+                            LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "version cannot larger than 5");
+                        }
+                        main.getFile(file, version);
+                        break;
+                    case "set-batch":
+                        String option = scanner.next().equals("res") ? "RESNET50" : "INCEPTION_V3";
+                        int size = scanner.nextInt();
+                        Allocator.batchSizeMap.put(option, size);
+                        break;
+                    case "query":
+                        String modelName = scanner.next();
+                        //todo
+                        if (modelName.equals("res")) {
+                            query("RESNET50");
+                        } else if (modelName.equals("inc")) {
+                            query("INCEPTION_V3");
+                        }
+                        break;
+                    case "statistic":
+                        statistic();
+                        break;
+                    case "query-rate":
+                        queryRate();
+                        break;
+                    case "show-allocation":
+                        showAllocation();
+                        break;
+                    case "result":
+                        int lineNumber = scanner.nextInt();
+                        displayResultOnLocalMachine(lineNumber);
+                        break;
+                    default:
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         main.join();
@@ -216,6 +268,9 @@ public class Main {
         System.out.println("-            membership list            -");
         System.out.print("-----------------------------------------");
         for (Process process : membershipList) {
+            if (process.getAddress().equals(Main.leader)) {
+                System.out.print("\n          leader");
+            }
             System.out.print("\n" + process);
         }
         System.out.println("-----------------------------------------");
@@ -311,7 +366,7 @@ public class Main {
         // - isn't leader
         //   - send UPLOAD_REQUEST to the leader
         //   - send UPLOAD message to members in the list returned by leader
-        if (!isLeader) {
+        if (!isLeader || !Main.leader.equals(Main.hostName)) {
             if (!uploadRequest(sdfsFileName)) {
                 return false;
             }
@@ -335,7 +390,7 @@ public class Main {
         for (Process process : Main.nodeList) {
             Sender.sendFile(process.getAddress(), Main.port_sdfs, localFileName, sdfsFileName);
         }
-        while(Main.WRITE_ACK < Main.W){
+        while (Main.WRITE_ACK < Main.W) {
             Thread.sleep(1000);
         }
         Main.WRITE_ACK = 0;
@@ -367,7 +422,7 @@ public class Main {
         // - fetch files from these nodes
         // - compare version and display the latest one
         // - TODO: inform nodes that have old versions to update files
-        if (isLeader) {
+        if (isLeader && Main.leader.equals(Main.hostName)) {
             Main.nodeList = LeaderFunction.getDataNodesToStoreFile(fileName)
                     .stream()
                     .map(
@@ -403,7 +458,7 @@ public class Main {
                             .build()
             );
         }
-        while(Main.READ_ACK < Main.R){
+        while (Main.READ_ACK < Main.R) {
             Thread.sleep(1000);
         }
         Main.READ_ACK = 0;
@@ -465,7 +520,7 @@ public class Main {
         //   - send request to leader and wait for the response
         //   - display the list in console
         List<String> dataNodeList;
-        if (isLeader) {
+        if (isLeader && Main.leader.equals(Main.hostName)) {
             if (!Main.totalStorage.containsKey(fileName)) {
                 LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "No file " + fileName + " stored in sdfs system!");
                 return;
@@ -499,5 +554,98 @@ public class Main {
             System.out.println("     " + file + " version: " + Main.storageList.get(file));
         }
         System.out.println("-----------------------------------------");
+    }
+
+    private static void query(String option) {
+        Sender.sendSDFS(
+                leader, Main.port_sdfs, Message.newBuilder()
+                        .setCommand(Command.QUERY_REQUEST)
+                        .setHostName(Main.hostName)
+                        .setPort(Main.port_sdfs)
+                        .setMeta(option)
+                        .build()
+        );
+    }
+
+    private static void queryRate() {
+        Sender.sendSDFS(
+                Main.leader,
+                Main.port_sdfs,
+                Message.newBuilder()
+                        .setCommand(Command.RETRIEVE)
+                        .setHostName(Main.hostName)
+                        .setPort(Main.port_sdfs)
+                        .setMeta("query-rate")
+                        .build()
+        );
+    }
+
+    private static void statistic() {
+        Sender.sendSDFS(
+                Main.leader,
+                Main.port_sdfs,
+                Message.newBuilder()
+                        .setCommand(Command.RETRIEVE)
+                        .setHostName(Main.hostName)
+                        .setPort(Main.port_sdfs)
+                        .setMeta("statistic")
+                        .build()
+        );
+    }
+
+    private static void showAllocation() {
+        Sender.sendSDFS(
+                Main.leader,
+                Main.port_sdfs,
+                Message.newBuilder()
+                        .setCommand(Command.RETRIEVE)
+                        .setHostName(Main.hostName)
+                        .setPort(Main.port_sdfs)
+                        .setMeta("allocation")
+                        .build()
+        );
+    }
+
+    private static void displayResultOnLocalMachine(int lineNumber) {
+        // then show them in console
+        String filepath = localDirectory + "Query_result_";
+        for (String modalName : Models.models.keySet()) {
+            File file = new File(filepath + modalName);
+            if (file.exists()) {
+                System.out.println("[INFO] display result of " + modalName);
+                try {
+                    BufferedReader fileReader = new BufferedReader(new FileReader(file));
+                    String line;
+                    for (int i = 0; i < lineNumber; i++) {
+                        try {
+                            if ((line = fileReader.readLine()) != null) {
+                                System.out.println(line);
+                            } else {
+                                break;
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static int availableWorker() {
+        int cnt = 0;
+        for (Process process : membershipList) {
+            if (process.getStatus().equals(ProcessStatus.ALIVE)) {
+                if (!process.getAddress().equals(leader) && !process.getAddress().equals(backupCoordinator)) {
+                    cnt++;
+                    if (!Allocator.vmQueryMatcher.containsKey(process.getAddress())) {
+                        Allocator.vmQueryMatcher.put(process.getAddress(), new ArrayList<>());
+                    }
+                }
+            }
+        }
+        return cnt;
     }
 }

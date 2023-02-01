@@ -72,10 +72,10 @@ public class Receiver extends Thread {
                     break;
                 }
             }
-            if (this.message.getCommand() != Command.PING && this.message.getCommand() != Command.ACK) {
-                System.out.println("[MESSAGE] get " + this.message.getCommand() + " command from "
-                        + this.message.getHostName() + "@" + this.message.getTimestamp());
-            }
+//            if (this.message.getCommand() != Command.PING && this.message.getCommand() != Command.ACK) {
+//                System.out.println("[MESSAGE] get " + this.message.getCommand() + " command from "
+//                        + this.message.getHostName() + "@" + this.message.getTimestamp());
+//            }
             switch (this.message.getCommand()) {
                 case LEAVE:
                     try {

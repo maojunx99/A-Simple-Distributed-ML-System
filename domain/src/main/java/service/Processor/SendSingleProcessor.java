@@ -1,4 +1,4 @@
-package service;
+package service.Processor;
 
 import core.Message;
 
@@ -12,7 +12,7 @@ public class SendSingleProcessor extends Thread{
     public String hostName;
     public int port;
     public Message message;
-    SendSingleProcessor(String hostName, int port, Message message){
+    public SendSingleProcessor(String hostName, int port, Message message){
         this.hostName = hostName;
         this.port = port;
         this.message = message;

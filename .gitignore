@@ -4,3 +4,8 @@ logging.log
 .idea/
 target/
 *.DS_Store
+*.properties
+dataset1/
+dataset/
+models/
+domain/src/main/resources/setting.properties

@@ -55,6 +55,7 @@ public class SDFSSender extends Thread {
                 this.message.writeTo(outputStream);
                 try {
                     socket.shutdownOutput();
+                    socket.close();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -68,7 +69,17 @@ public class SDFSSender extends Thread {
         try {
             contents = Files.readAllBytes(Paths.get(Main.localDirectory + localFileName));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            try {
+                LogGenerator.loggingInfo(LogGenerator.LogType.ERROR, "wrong file name, please try again");
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            try {
+                socket.shutdownOutput();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            return;
         }
         Message message1 = Message.newBuilder()
                 .setHostName(Main.hostName)
@@ -90,6 +101,7 @@ public class SDFSSender extends Thread {
             message1.writeTo(outputStream);
             try {
                 socket.shutdownOutput();
+                socket.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

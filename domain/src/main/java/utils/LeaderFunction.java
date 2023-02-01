@@ -21,12 +21,11 @@ public class LeaderFunction {
         int aliveCnt = 0;
         boolean[] isSelected = new boolean[Main.membershipList.size()];
         Random r = new Random();
-        for (int i = 0; i < Main.membershipList.size(); i++) {
+        for (int i = 0; i < Main.membershipList.size() && list.size() < Main.copies; i++) {
             Process process = Main.membershipList.get(i);
             if (process.getStatus() == ProcessStatus.ALIVE) {
                 aliveCnt++;
                 if (r.nextBoolean()) {
-
                     System.out.println("[INFO] Add " + process.getAddress());
                     list.add(process.getAddress());
                     isSelected[i] = true;
@@ -46,6 +45,17 @@ public class LeaderFunction {
             index = (index + 1) % Main.membershipList.size();
         }
         Main.totalStorage.put(sdfsFileName, list);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("totalStorage ").append(sdfsFileName).append(" ");
+        for(String i : list){
+            stringBuilder.append(i).append(" ");
+        }
+        if(!Main.hostName.equals(Main.backupCoordinator)){
+            Sender.sendSDFS(Main.backupCoordinator, Main.port_sdfs, Message.newBuilder()
+                    .setCommand(Command.SYNC_INFO)
+                    .setMeta(stringBuilder.toString())
+                    .build());
+        }
         return list;
     }
 
